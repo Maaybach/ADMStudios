@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ADMSTUDIOS · Optimise ton PC pour FiveM</title>
+<meta name="description" content="Diagnostic gratuit pour gagner des FPS et arrêter les crashs sur FiveM. Réponds à 7 questions, tu repars avec ton plan.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Banc de test : réglages du PC à gauche, relevé de diagnostic à droite qui se met à jour en direct */
+:root{
+  --bg:#0d1115; --panel:#141a20; --panel-2:#1a222a; --line:#26303a;
+  --fg:#e7ecf0; --muted:#8996a2; --accent:#f2a93b; --accent-ink:#1a1206;
+  --good:#5cc98a; --warn:#f2a93b; --bad:#ef6b5b;
+  --f-display:"Chakra Petch", "Bahnschrift", "Arial Narrow", sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#eef1f3; --panel:#ffffff; --panel-2:#f5f7f8; --line:#d7dde2;
+    --fg:#12181d; --muted:#5b6670; --accent:#b86e00; --accent-ink:#ffffff;
+    --good:#1f8a4f; --warn:#b86e00; --bad:#c23b2c; color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#eef1f3; --panel:#ffffff; --panel-2:#f5f7f8; --line:#d7dde2;
+  --fg:#12181d; --muted:#5b6670; --accent:#b86e00; --accent-ink:#ffffff;
+  --good:#1f8a4f; --warn:#b86e00; --bad:#c23b2c; color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:28px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+p{margin:0}
+code{font-family:var(--f-mono);font-size:.86em}
+
+/* En-tête */
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:20px}
+.brand{display:flex;flex-direction:column;gap:6px}
+.logo{font-size:clamp(34px,6vw,52px);font-weight:700;letter-spacing:-.01em}
+.logo span{color:var(--accent)}
+.tagline{color:var(--muted);max-width:52ch}
+.readout{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:right;letter-spacing:.04em;text-transform:uppercase}
+.readout b{color:var(--accent);font-weight:600}
+
+.layout{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:28px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+
+/* Questions */
+.form{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:22px}
+.example{font-size:13px;color:var(--muted);background:var(--panel-2);border-radius:6px;padding:10px 12px;border-left:3px solid var(--accent)}
+.q{display:flex;flex-direction:column;gap:10px;border:0;margin:0;padding:0;min-width:0}
+.q legend{font-family:var(--f-display);font-weight:600;font-size:15px;text-transform:uppercase;letter-spacing:.06em;padding:0;margin-bottom:10px}
+.q .hint{font-size:12.5px;color:var(--muted);margin-top:-4px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts.stack{flex-direction:column}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.opt label{display:flex;flex-direction:column;gap:2px;padding:9px 13px;border:1px solid var(--line);border-radius:7px;background:var(--panel-2);cursor:pointer;transition:border-color .15s, background .15s}
+.opt label .t{font-weight:500}
+.opt label .s{font-size:12px;color:var(--muted)}
+.opt input:checked + label{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, var(--panel-2))}
+.opt input:checked + label .t{color:var(--fg)}
+.opt input:focus-visible + label{outline:2px solid var(--accent);outline-offset:2px}
+.opt label:hover{border-color:color-mix(in srgb, var(--accent) 55%, var(--line))}
+
+/* Résultats */
+.results{display:flex;flex-direction:column;gap:22px;min-width:0}
+.verdict{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:20px}
+@media (max-width:560px){.verdict{grid-template-columns:minmax(0,1fr)}}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.verdict h2{font-size:clamp(24px,3.4vw,32px);margin:6px 0 10px}
+.verdict h2 em{font-style:normal;color:var(--accent)}
+.verdict p{color:var(--muted);max-width:60ch}
+.gauges{display:flex;flex-direction:column;gap:12px;justify-content:center}
+.gauge{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:10px;font-family:var(--f-mono);font-size:12px}
+.gauge .lbl{color:var(--muted)}
+.gauge.hot .lbl{color:var(--accent);font-weight:600}
+.bars{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.bars i{height:10px;border-radius:2px;background:var(--line)}
+.bars i.on{background:var(--muted)}
+.gauge.hot .bars i.on{background:var(--accent)}
+
+.section-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+.section-head h2{font-size:22px}
+.progress{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.plan{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:step}
+.act{background:var(--panel);border:1px solid var(--line);border-radius:10px;counter-increment:step}
+.act.done{opacity:.6}
+.act summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px 16px}
+.act summary::-webkit-details-marker{display:none}
+.act summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:10px}
+.num{font-family:var(--f-mono);font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.num::before{content:counter(step, decimal-leading-zero)}
+.act.top .num{color:var(--accent)}
+.act-title{font-weight:600;font-size:15.5px}
+.done .act-title{text-decoration:line-through}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+.chip{font-family:var(--f-mono);font-size:11px;letter-spacing:.03em;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip.g-gros{border-color:var(--good);color:var(--good)}
+.chip.g-moyen{border-color:color-mix(in srgb, var(--good) 45%, var(--line));color:var(--fg)}
+.chip.l-avance{border-color:var(--bad);color:var(--bad)}
+.chev{color:var(--muted);transition:transform .2s;font-family:var(--f-mono)}
+details[open] .chev{transform:rotate(90deg)}
+.act-body{padding:0 16px 16px 62px;display:flex;flex-direction:column;gap:12px}
+@media (max-width:520px){.act-body{padding-left:16px}}
+.why{color:var(--muted);max-width:65ch}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;max-width:68ch}
+.steps code{background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;word-break:break-all}
+.copy{font-family:var(--f-mono);font-size:11px;margin-left:6px;padding:1px 6px;border-radius:4px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;vertical-align:1px}
+.copy:hover,.copy:focus-visible{color:var(--accent);border-color:var(--accent);outline:none}
+.mark{align-self:flex-start;font-family:var(--f-body);font-size:13.5px;font-weight:600;padding:8px 14px;border-radius:7px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer}
+.mark:hover{background:color-mix(in srgb, var(--accent) 12%, transparent)}
+.done .mark{border-color:var(--line);color:var(--muted)}
+.mark:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Réglages GTA */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.card > p{color:var(--muted);max-width:65ch}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:460px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400}
+td.val{font-family:var(--f-mono);font-weight:600;color:var(--accent);white-space:nowrap}
+.cost{display:inline-flex;gap:3px;vertical-align:middle;margin-right:6px}
+.cost i{width:6px;height:12px;border-radius:1px;background:var(--line)}
+.cost i.on{background:var(--bad)}
+td.note{color:var(--muted);font-size:13px}
+
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+@media (max-width:700px){.duo{grid-template-columns:minmax(0,1fr)}}
+.traps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.traps li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px}
+.traps li::before{content:"✕";color:var(--bad);font-family:var(--f-mono);font-weight:600}
+.traps b{display:block}
+.traps span{color:var(--muted);font-size:13.5px}
+.cta{border-color:color-mix(in srgb, var(--accent) 50%, var(--line))}
+.cta h3{font-size:20px}
+.btn{align-self:flex-start;display:inline-block;font-weight:600;text-decoration:none;padding:10px 16px;border-radius:7px;background:var(--accent);color:var(--accent-ink)}
+.btn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+
+/* Retour du joueur + ticket */
+.feedback{gap:16px}
+.fb-btns{display:flex;flex-wrap:wrap;gap:10px}
+.fb{font-family:var(--f-body);font-size:14px;font-weight:600;padding:10px 16px;border-radius:7px;cursor:pointer;border:1px solid var(--line);background:var(--panel-2);color:var(--fg)}
+.fb:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fb.ok{border-color:var(--good);color:var(--good)}
+.fb.ko{border-color:var(--bad);color:var(--bad)}
+.fb[aria-pressed="true"].ok{background:color-mix(in srgb, var(--good) 14%, var(--panel-2))}
+.fb[aria-pressed="true"].ko{background:color-mix(in srgb, var(--bad) 14%, var(--panel-2))}
+.msg-ok{color:var(--good);font-weight:500}
+.ko-zone{display:flex;flex-direction:column;gap:10px}
+.preview-note{font-size:12.5px;color:var(--muted)}
+.code-box{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px dashed var(--accent);border-radius:8px;background:var(--panel-2)}
+.code-val{font-family:var(--f-mono);font-size:26px;font-weight:600;color:var(--accent);letter-spacing:.06em}
+.code-box .mark{align-self:center}
+
+
+.submit{font-family:var(--f-display);font-size:17px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:13px 18px;border-radius:8px;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.submit:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.submit:disabled{opacity:.6;cursor:wait}
+.form-error{color:var(--bad);font-size:13.5px;font-weight:500}
+.empty{background:var(--panel);border:1px dashed var(--line);border-radius:10px;padding:28px 22px;display:flex;flex-direction:column;gap:10px}
+.empty h2{font-size:24px}
+.empty p{color:var(--muted);max-width:52ch}
+.empty ul{margin:4px 0 0;padding-left:18px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.invite{font-family:var(--f-mono);font-weight:600;color:var(--accent)}
+footer a{color:var(--muted)}
+footer{color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:16px;display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1 class="logo">ADM<span>STUDIOS</span></h1>
+      <p class="tagline">Plus de FPS et moins de crashs sur FiveM, sans logiciel miracle. Réponds à 7 questions, tu repars avec ton plan.</p>
+    </div>
+    <div class="readout">Diagnostic FiveM · GTA V<br><b id="nb-actions">0</b> actions pour ton PC</div>
+  </header>
+
+  <div class="layout">
+    <form class="form" id="form" aria-label="Questions sur ton PC">
+      <div id="questions" style="display:flex;flex-direction:column;gap:22px"></div>
+      <p class="form-error" id="form-error" role="alert" hidden></p>
+      <button type="submit" class="submit" id="submit">Voir mon plan</button>
+    </form>
+
+    <div class="empty" id="empty">
+      <div class="eyebrow">Ton diagnostic</div>
+      <h2>Réponds aux questions, ton plan arrive ici</h2>
+      <p>En une minute, ADMSTUDIOS repère ce qui freine ton PC sur FiveM et te donne les actions à faire dans l'ordre, avec les étapes détaillées.</p>
+      <ul>
+        <li>Ce qui te freine le plus : processeur, carte graphique, RAM, disque ou chauffe</li>
+        <li>Un plan d'actions trié du plus efficace au moins utile</li>
+        <li>Les réglages GTA calculés pour ta config</li>
+      </ul>
+    </div>
+    <div class="results" id="results" hidden>
+      <section class="verdict" aria-live="polite">
+        <div>
+          <div class="eyebrow">Ce qui te freine le plus</div>
+          <h2 id="v-title"></h2>
+          <p id="v-text"></p>
+        </div>
+        <div class="gauges" id="gauges" aria-label="Niveau de chaque composant"></div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:12px">
+        <div class="section-head">
+          <h2>Ton plan, dans l'ordre</h2>
+          <span class="progress" id="progress"></span>
+        </div>
+        <ol class="plan" id="plan"></ol>
+      </section>
+
+      <section class="card feedback" id="feedback">
+        <div>
+          <div class="eyebrow">Après avoir testé en jeu</div>
+          <h2 style="font-size:22px;margin-top:6px">Alors, ça a marché ?</h2>
+        </div>
+        <div class="fb-btns">
+          <button type="button" class="fb ok" id="fb-ok" aria-pressed="false">Ça marche</button>
+          <button type="button" class="fb ko" id="fb-ko" aria-pressed="false">Ça marche toujours pas</button>
+        </div>
+        <p class="msg-ok" id="msg-ok" hidden>Parfait, bon jeu ! Merci du retour, ça nous aide à améliorer le diagnostic.</p>
+        <div class="ko-zone" id="ko-zone" hidden>
+          <p>Pas de panique, l'équipe va t'aider. Rejoins le Discord ADMSTUDIOS et ouvre un ticket dans le salon support, en donnant ton code de diagnostic : on retrouvera ta config tout de suite, sans te reposer les questions.</p>
+          <div class="code-box">
+            <div><div class="eyebrow">Ton code de diagnostic</div><div class="code-val" id="diag-code">ADM-0000</div></div>
+            <button type="button" class="mark" id="copy-code">Copier le code</button>
+          </div>
+          <p>Rejoins le Discord : <a class="invite" id="invite" href="#" target="_blank" rel="noopener"></a></p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="after" hidden style="display:flex;flex-direction:column;gap:28px">
+  <section class="card" id="reglages">
+    <div class="section-head">
+      <h2 style="font-size:22px">Réglages GTA conseillés</h2>
+      <span class="progress" id="settings-for"></span>
+    </div>
+    <p>Dans GTA : Paramètres → Graphismes, puis Graphismes avancés. Les barres rouges montrent ce que chaque option coûte en FPS. Commence toujours par baisser les plus coûteuses.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Réglage</th><th>Valeur</th><th>Coût en FPS</th></tr></thead>
+        <tbody id="settings"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="duo">
+    <section class="card">
+      <h2 style="font-size:22px">Les pièges à éviter</h2>
+      <ul class="traps">
+        <li><div><b>Les logiciels « booster de FPS »</b><span>La plupart ferment juste des programmes que tu peux fermer toi-même. Certains installent des pubs ou pire.</span></div></li>
+        <li><div><b>Les scripts .bat « optimisation ultime »</b><span>Beaucoup désactivent l'antivirus, les mises à jour ou des services Windows. Gain proche de zéro, risque bien réel.</span></div></li>
+        <li><div><b>Les « tweaks registre +100 FPS »</b><span>Aucune modif du registre ne double tes FPS. Au mieux rien ne change, au pire Windows devient instable.</span></div></li>
+        <li><div><b>L'overclocking à l'aveugle</b><span>Copier les valeurs d'une vidéo sans connaître ton matériel, c'est la meilleure façon de créer des crashs.</span></div></li>
+        <li><div><b>Les packs « HD ultra » sur un petit PC</b><span>Un pack graphique doit être choisi selon ta carte graphique, sinon tu perds tes FPS et tu gagnes des crashs.</span></div></li>
+      </ul>
+    </section>
+    <section class="card cta">
+      <div class="eyebrow">Étape suivante</div>
+      <h3 id="cta-title"></h3>
+      <p id="cta-text"></p>
+      <a class="btn" href="https://dictature-pack.fr/" target="_blank" rel="noopener">Créer mon pack sur Dictature Pack</a>
+    </section>
+  </div>
+  </div>
+
+  <footer>
+    <span>ADMSTUDIOS · <a href="/confidentialite.html">Données personnelles</a></span>
+    <span>Les gains varient d'un PC à l'autre. Fais une modif à la fois et teste en jeu.</span>
+  </footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  {id:'pc', label:'Ton PC', opts:[['fixe','PC fixe'],['portable','PC portable']]},
+  {id:'gpu', label:'Ta carte graphique', hint:'Tu sais pas ? Gestionnaire des tâches (Ctrl + Maj + Échap) → Performances → GPU.', stack:true, opts:[
+    ['1','Entrée de gamme','GTX 1050 à 1660, RX 570 à 6500 XT'],
+    ['2','Milieu de gamme','RTX 2060 à 4060, RX 6600 à 7600'],
+    ['3','Haut de gamme','RTX 3070 et plus, RX 6700 XT et plus']]},
+  {id:'cpu', label:'Ton processeur', hint:'Même endroit : Performances → Processeur.', stack:true, opts:[
+    ['1','Ancien ou 4 cœurs','i5-7400, i7-4790, Ryzen 3'],
+    ['2','Milieu','Ryzen 5 2600 à 3600, i5-9400 à 11400'],
+    ['3','Récent','Ryzen 5 5600 et plus, i5-12400 et plus']]},
+  {id:'ram', label:'Ta RAM', opts:[['8','8 Go'],['16','16 Go'],['32','32 Go ou plus']]},
+  {id:'disk', label:'GTA est installé sur', opts:[['ssd','Un SSD'],['hdd','Un disque dur (HDD)'],['nsp','Je sais pas']]},
+  {id:'pb', label:'Tes problèmes', hint:'Coche tout ce qui te parle.', multi:true, opts:[
+    ['fps','FPS bas'],['saccades','Saccades, micro-freezes'],['crash','Crashs'],['textures','Textures qui chargent mal'],['chauffe','PC qui chauffe ou souffle fort'],['lag','Input lag']]},
+  {id:'goal', label:'Ce que tu veux', opts:[['fps','Max FPS'],['equilibre','Équilibré'],['beau','Beau rendu']]}
+];
+// Lien d'invitation du Discord ADMSTUDIOS : remplace-le par le vôtre
+const DISCORD_INVITE = 'https://discord.gg/ton-lien';
+const DEFAULT = {pc:'', gpu:'', cpu:'', ram:'', disk:'', pb:[], goal:''};
+
+const has = (a,p) => a.pb.includes(p);
+const ACTIONS = [
+  {id:'gpu-laptop', title:'Forcer la carte graphique dédiée', level:'Facile', gain:'Gros', time:'3 min',
+   when:a=>a.pc==='portable', score:a=>92,
+   why:"Sur beaucoup de portables, FiveM se lance sur la puce graphique intégrée au processeur, bien moins puissante que ta vraie carte graphique.",
+   steps:["Ouvre Paramètres Windows → Système → Écran → Graphiques.","Clique sur Parcourir et ajoute <code>FiveM.exe</code>, qui se trouve dans <code>%localappdata%\\FiveM</code>.","Clique dessus → Options → Hautes performances, puis Enregistrer.","Refais pareil pour <code>GTA5.exe</code> dans ton dossier d'installation de GTA."]},
+  {id:'ram8', title:'Passer à 16 Go de RAM', level:'Moyen', gain:'Gros', time:'15 min',
+   when:a=>a.ram==='8', score:a=>90,
+   why:"FiveM, Discord et un navigateur ouverts ensemble dépassent vite 8 Go. Windows se met alors à utiliser le disque à la place de la RAM : saccades et textures qui chargent mal garanties.",
+   steps:["Regarde tes emplacements libres : Gestionnaire des tâches → Performances → Mémoire → « Emplacements utilisés ».","Achète le même type que ta RAM actuelle (DDR4 ou DDR5, indiqué au même endroit).","L'idéal : deux barrettes identiques de 8 Go, pour profiter du dual channel.","Sur un portable, vérifie d'abord sur le site du constructeur que la RAM n'est pas soudée."]},
+  {id:'ram-xmp', title:'Activer le profil XMP ou EXPO de ta RAM', level:'Moyen', gain:'Gros', time:'10 min',
+   when:a=>a.pc==='fixe', score:a=>(a.cpu<a.gpu||has(a,'saccades'))?88:62,
+   why:"Plein de PC tournent avec la RAM bridée à sa vitesse minimale. GTA dépend énormément du processeur et de la RAM, surtout en ville : c'est souvent le réglage qui rapporte le plus.",
+   steps:["Ouvre le Gestionnaire des tâches → Performances → Mémoire et regarde la ligne « Vitesse ».","Si tu vois 2133 ou 2400 alors que ta RAM est vendue pour 3200 ou plus, le profil n'est pas activé.","Redémarre et entre dans le BIOS (touche Suppr ou F2 pendant le démarrage).","Cherche XMP (Intel) ou EXPO / DOCP (AMD), choisis « Profil 1 » et enregistre avec F10.","Si le PC refuse de démarrer, il revient tout seul aux anciens réglages après 2 ou 3 essais."]},
+  {id:'ssd', title:'Installer GTA sur un SSD', level:'Moyen', gain:'Gros', time:'30 min',
+   when:a=>a.disk!=='ssd', score:a=>a.disk==='hdd'?((has(a,'textures')||has(a,'saccades'))?89:78):55,
+   why:"Sur un disque dur, les textures et les bâtiments arrivent en retard quand tu roules vite. Un SSD règle ça et divise les temps de chargement.",
+   steps:["Vérifie ton disque : Gestionnaire des tâches → Performances → Disque, le type SSD ou HDD est écrit en haut à droite.","Steam : Bibliothèque → GTA V → Propriétés → Fichiers installés → Déplacer le dossier d'installation.","Epic ou Rockstar : réinstalle le jeu sur le SSD, ou déplace le dossier et utilise l'option pour localiser le jeu.","Un SSD de 1 To se trouve pour quelques dizaines d'euros, GTA prend environ 100 Go."]},
+  {id:'temps', title:'Vérifier les températures', level:'Moyen', gain:'Gros', time:'15 min',
+   when:a=>has(a,'chauffe')||a.pc==='portable', score:a=>has(a,'chauffe')?86:45,
+   why:"Un composant trop chaud se bride tout seul pour se protéger. Résultat : les FPS chutent au bout de 20 minutes de jeu, sans raison apparente.",
+   steps:["Installe HWiNFO ou MSI Afterburner (gratuits) pour afficher les températures pendant que tu joues.","Repères : au-dessus de 90 °C pour le processeur ou 85 °C pour la carte graphique, ton PC se bride.","Dépoussière les ventilateurs et les filtres avec une bombe d'air sec, PC éteint et débranché.","Sur un portable : jamais sur un lit ou une couette, et un support ventilé aide beaucoup."]},
+  {id:'drivers', title:'Mettre à jour le pilote graphique', level:'Facile', gain:'Moyen', time:'10 min',
+   when:a=>true, score:a=>has(a,'crash')?80:70,
+   why:"Les pilotes corrigent régulièrement des crashs et des baisses de performances dans les jeux. Un pilote vieux d'un an, c'est souvent des FPS laissés sur la table.",
+   steps:["NVIDIA : ouvre l'application NVIDIA → Pilotes → installe le dernier pilote « Game Ready ».","AMD : ouvre AMD Software Adrenalin → Accueil → Rechercher des mises à jour.","Intel Arc : passe par Intel Graphics Software ou Intel Driver & Support Assistant.","Redémarre le PC après l'installation."]},
+  {id:'ddu', title:'Réinstaller le pilote proprement avec DDU', level:'Avancé', gain:'Gros', time:'20 min',
+   when:a=>has(a,'crash'), score:a=>74,
+   why:"Si les crashs continuent après une mise à jour, l'ancien pilote a pu laisser des restes. DDU efface tout pour repartir de zéro.",
+   steps:["Télécharge Display Driver Uninstaller (DDU) sur guru3d.com et le dernier pilote de ta carte graphique.","Coupe internet pour que Windows n'installe pas un pilote tout seul.","Lance DDU, accepte de redémarrer en mode sans échec, puis clique sur « Nettoyer et redémarrer ».","Installe le pilote téléchargé, puis rebranche internet."]},
+  {id:'cache', title:'Vider le cache FiveM', level:'Facile', gain:'Moyen', time:'3 min',
+   when:a=>true, score:a=>(has(a,'crash')||has(a,'textures'))?82:48,
+   why:"Le cache garde les fichiers téléchargés sur chaque serveur. Quand il est corrompu ou énorme, ça donne des crashs au chargement et des textures bizarres.",
+   steps:["Ferme complètement FiveM.","Appuie sur Windows + R et colle <code>%localappdata%\\FiveM\\FiveM.app\\data</code>.","Supprime les dossiers <code>cache</code>, <code>server-cache</code> et <code>server-cache-priv</code>.","Ne touche pas à <code>game-storage</code>, sinon tout se retélécharge.","La première connexion à ton serveur sera plus longue, c'est normal."]},
+  {id:'mods', title:'Retirer les packs lourds et ReShade', level:'Facile', gain:'Moyen', time:'5 min',
+   when:a=>has(a,'crash')||has(a,'fps'), score:a=>has(a,'crash')?72:52,
+   why:"Un pack graphique trop lourd pour ta carte ou un ReShade mal réglé peut te coûter beaucoup de FPS et provoquer des crashs.",
+   steps:["Ouvre <code>%localappdata%\\FiveM\\FiveM.app</code>.","Déplace le contenu des dossiers <code>mods</code> et <code>plugins</code> sur ton bureau, pour garder une copie.","Teste en jeu sans rien : si c'est mieux, le problème venait de là.","Remets ensuite un pack adapté à ton PC plutôt que le plus lourd."]},
+  {id:'gta', title:'Appliquer les réglages GTA conseillés', level:'Facile', gain:'Gros', time:'5 min',
+   when:a=>true, score:a=>has(a,'fps')?84:60, link:true,
+   why:"Quelques options de GTA mangent l'essentiel des FPS sans changer grand-chose à l'image. Le tableau plus bas est calculé pour ton PC.",
+   steps:["Dans GTA : Paramètres → Graphismes, puis Graphismes avancés.","Recopie les valeurs du tableau « Réglages GTA conseillés » plus bas.","En priorité : l'herbe, le MSAA et les ombres."]},
+  {id:'overlays', title:'Couper les overlays', level:'Facile', gain:'Moyen', time:'3 min',
+   when:a=>true, score:a=>(has(a,'saccades')||has(a,'lag'))?76:58,
+   why:"Les fenêtres qui s'affichent par-dessus le jeu (Discord, Xbox, NVIDIA, Steam) causent souvent des micro-saccades et de l'input lag.",
+   steps:["Discord : Paramètres → Superposition du jeu → désactive-la.","Windows : Paramètres → Jeux → Game Bar → désactive l'ouverture avec la manette ou le raccourci.","NVIDIA : désactive l'overlay dans les paramètres de l'application NVIDIA si tu ne t'en sers pas.","Steam : Paramètres → En jeu → décoche l'overlay Steam."]},
+  {id:'fond', title:'Fermer ce qui tourne en fond', level:'Facile', gain:'Moyen', time:'5 min',
+   when:a=>true, score:a=>a.ram==='8'?80:50,
+   why:"Un navigateur avec une vidéo YouTube, trois launchers et un logiciel RGB, ça mange de la RAM et du processeur pendant que tu joues.",
+   steps:["Ferme ton navigateur ou garde seulement 2 ou 3 onglets, sans vidéo.","Ferme les launchers inutiles (Epic, Ubisoft, EA) une fois le jeu lancé.","Gestionnaire des tâches → Démarrage : désactive ce qui n'a pas besoin de démarrer avec Windows."]},
+  {id:'power', title:'Passer en mode performances', level:'Facile', gain:'Moyen', time:'2 min',
+   when:a=>true, score:a=>a.pc==='portable'?83:42,
+   why:"En mode économie d'énergie, Windows bride le processeur. Sur portable, jouer sur batterie bride aussi la carte graphique.",
+   steps:["Paramètres Windows → Système → Alimentation → Mode d'alimentation → « Performances optimales ».","Portable : joue toujours branché sur secteur.","Portable : mets le logiciel du constructeur (Armoury Crate, Lenovo Vantage, Omen Gaming Hub…) en mode Performance ou Turbo."]},
+  {id:'cap', title:'Limiter tes FPS pour les stabiliser', level:'Facile', gain:'Moyen', time:'5 min',
+   when:a=>has(a,'saccades'), score:a=>70,
+   why:"Des FPS qui font le yoyo entre 50 et 120 donnent une sensation de saccade. 70 FPS stables paraissent bien plus fluides.",
+   steps:["En jeu, ouvre la console avec F8 et tape <code>cl_drawfps true</code> pour afficher tes FPS.","Note tes FPS moyens en ville, là où c'est le plus chargé.","NVIDIA : Panneau de configuration → Gérer les paramètres 3D → Fréquence d'images maximale, environ 10 % sous ta moyenne.","AMD : Adrenalin → Jeux → limite de FPS (Radeon Chill ou Frame Rate Target Control)."]},
+  {id:'lag', title:"Réduire l'input lag", level:'Facile', gain:'Moyen', time:'5 min',
+   when:a=>has(a,'lag'), score:a=>72,
+   why:"Pour les gunfights, le délai entre ton clic et l'action à l'écran compte autant que les FPS.",
+   steps:["Dans GTA, mets la synchronisation verticale (V-Sync) sur Désactivée.","NVIDIA : Panneau de configuration → Mode faible latence → Activé.","AMD : active Radeon Anti-Lag dans Adrenalin.","Joue en plein écran plutôt qu'en fenêtré."]},
+  {id:'files', title:'Vérifier les fichiers de GTA', level:'Facile', gain:'Moyen', time:'15 min',
+   when:a=>has(a,'crash'), score:a=>64,
+   why:"Un fichier du jeu abîmé peut faire crasher FiveM au lancement ou au chargement d'une zone précise.",
+   steps:["Steam : clic droit sur GTA V → Propriétés → Fichiers installés → Vérifier l'intégrité.","Epic : bibliothèque → trois points sur GTA V → Gérer → Vérifier.","Rockstar Launcher : Paramètres → Mes jeux installés → GTA V → Vérifier l'intégrité."]},
+  {id:'hags', title:'Tester la planification GPU', level:'Avancé', gain:'Petit', time:'20 min',
+   when:a=>has(a,'saccades')||has(a,'fps'), score:a=>25,
+   why:"Cette option de Windows aide certains PC et en ralentit d'autres. Le seul moyen de savoir, c'est de tester.",
+   steps:["Paramètres Windows → Système → Écran → Graphiques → Modifier les paramètres graphiques par défaut.","Change l'option « Planification du processeur graphique à accélération matérielle », puis redémarre.","Joue 20 minutes au même endroit et compare tes FPS. Garde le réglage qui marche le mieux."]}
+];
+
+const LEVELS = ['Normale','Haute','Très haute'];
+function settingsFor(a){
+  const g = +a.gpu, goal = a.goal;
+  const adj = goal==='fps'?-1:goal==='beau'?1:0;
+  const lvl = n => LEVELS[Math.max(0,Math.min(2,n))];
+  const L = g-2+adj+1; // 0..2 environ
+  return [
+    ['Qualité de l\'herbe', goal==='fps'?'Normale':(goal==='beau'&&g===3?'Très haute':(g===1?'Normale':'Haute')), 4, 'Le réglage le plus gourmand du jeu. Ultra est à éviter partout.'],
+    ['MSAA', (goal==='beau'&&g===3)?'x2':'Désactivé', 4, 'Énorme coût pour un gain discret. Le FXAA fait le travail.'],
+    ['FXAA', 'Activé', 1, 'Lisse les contours presque gratuitement.'],
+    ['Qualité des ombres', lvl(L), 3, 'Très haute uniquement sur une grosse carte graphique.'],
+    ['Distance d\'affichage étendue', goal==='beau'?(g===3?'50 %':'20 %'):(g===3&&a.cpu!=='1'?'20 %':'0 %'), 3, 'Charge surtout le processeur. À zéro si ton processeur est le point faible.'],
+    ['Qualité des textures', g===1?'Normale':(g===3&&goal!=='fps'?'Très haute':'Haute'), 1, 'Dépend de la mémoire de ta carte graphique, pas de sa puissance.'],
+    ['Qualité des réflexions', lvl(L), 2, 'Visible surtout sous la pluie et sur les voitures.'],
+    ['Post-traitement', goal==='fps'?'Normale':(goal==='beau'?'Très haute':'Haute'), 2, 'Normale retire le flou et une partie des effets.'],
+    ['Tessellation', goal==='fps'?'Désactivée':(goal==='beau'?'Haute':'Normale'), 1, 'Relief des arbres et des routes.'],
+    ['Synchronisation verticale', 'Désactivée', 1, 'Ajoute de l\'input lag. Limite plutôt tes FPS.']
+  ];
+}
+
+function bottleneck(a){
+  const g=+a.gpu, c=+a.cpu;
+  if(a.pc==='portable' && has(a,'chauffe')) return ['La <em>chauffe</em>', "Ton portable se bride sûrement pour ne pas surchauffer. Avant tout le reste, vérifie les températures et le mode d'alimentation.", 'temp'];
+  if(a.ram==='8') return ['Ta <em>RAM</em>', "Avec 8 Go, FiveM manque de place dès que Discord ou un navigateur tourne à côté. C'est la cause classique des saccades et des textures qui chargent mal.", 'ram'];
+  if(a.disk==='hdd' && (has(a,'textures')||has(a,'saccades'))) return ['Ton <em>disque dur</em>', "Le jeu n'arrive pas à charger les textures assez vite depuis un disque dur. Un SSD changera plus de choses que n'importe quel réglage.", 'disk'];
+  if(c<g) return ['Ton <em>processeur</em>', "GTA demande énormément au processeur, surtout en ville avec beaucoup de joueurs. Ta carte graphique attend souvent qu'il suive : la RAM bien réglée et une distance d'affichage basse vont t'aider.", 'cpu'];
+  if(g<c) return ['Ta <em>carte graphique</em>', "Ton processeur suit, c'est la carte graphique qui limite. Les réglages GTA (herbe, MSAA, ombres) vont faire une grosse différence.", 'gpu'];
+  return ['Rien de flagrant', "Ta config est équilibrée. Les gains vont venir des réglages, des pilotes et du ménage dans ce qui tourne à côté du jeu.", ''];
+}
+
+function ctaFor(a){
+  if(a.goal==='fps' || a.gpu==='1') return ["Un pack léger pour garder tes FPS", "Avec ta config, prends un pack graphique léger : des couleurs plus propres sans toucher aux performances. Évite les packs « HD » qui remplacent les textures."];
+  if(a.goal==='beau' && a.gpu==='3') return ["Ta config peut viser un pack réaliste", "Ta carte graphique a de la marge. Tu peux te permettre un pack plus poussé, avec une meilleure lumière et des reflets de pluie."];
+  return ["Un pack équilibré pour ta config", "Vise un pack qui améliore la lumière et les couleurs sans alourdir les textures. Tu gagnes en rendu sans perdre de FPS."];
+}
+
+// --- État ---
+let doneSet = new Set();
+try{ doneSet = new Set(JSON.parse(localStorage.getItem('admstudios-done')||'[]')); }catch(e){}
+function saveDone(){ try{ localStorage.setItem('admstudios-done', JSON.stringify([...doneSet])); }catch(e){} }
+
+// --- Rendu des questions ---
+const qWrap = document.getElementById('questions');
+qWrap.innerHTML = QUESTIONS.map(q => `
+  <fieldset class="q">
+    <legend>${q.label}</legend>
+    ${q.hint?`<p class="hint">${q.hint}</p>`:''}
+    <div class="opts${q.stack?' stack':''}">
+      ${q.opts.map(([v,t,s])=>{
+        const id = `${q.id}-${v}`;
+        const checked = q.multi ? DEFAULT[q.id].includes(v) : DEFAULT[q.id]===v;
+        return `<div class="opt"><input type="${q.multi?'checkbox':'radio'}" name="${q.id}" id="${id}" value="${v}"${checked?' checked':''}><label for="${id}"><span class="t">${t}</span>${s?`<span class="s">${s}</span>`:''}</label></div>`;
+      }).join('')}
+    </div>
+  </fieldset>`).join('');
+
+function read(){
+  const f = document.getElementById('form');
+  const a = {};
+  QUESTIONS.forEach(q=>{
+    if(q.multi) a[q.id] = [...f.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i=>i.value);
+    else a[q.id] = (f.querySelector(`input[name="${q.id}"]:checked`)||{}).value;
+  });
+  return a;
+}
+
+function withCopy(html){
+  return html.replace(/<code>(.*?)<\/code>/g, (m,c)=>`<code>${c}</code><button type="button" class="copy" data-copy="${c.replace(/"/g,'&quot;')}">copier</button>`);
+}
+
+function render(){
+  const a = read();
+  // Verdict
+  const [title, text, hot] = bottleneck(a);
+  document.getElementById('v-title').innerHTML = title;
+  document.getElementById('v-text').textContent = text;
+  const ramLv = a.ram==='8'?1:a.ram==='16'?2:3;
+  const gauges = [['CPU',+a.cpu,'cpu'],['GPU',+a.gpu,'gpu'],['RAM',ramLv,'ram'],['DISQUE',a.disk==='ssd'?3:a.disk==='hdd'?1:2,'disk']];
+  document.getElementById('gauges').innerHTML = gauges.map(([l,v,k])=>`
+    <div class="gauge${hot===k?' hot':''}"><span class="lbl">${l}</span><span class="bars">${[1,2,3].map(i=>`<i class="${i<=v?'on':''}"></i>`).join('')}</span></div>`).join('');
+
+  // Plan
+  const list = ACTIONS.filter(x=>x.when(a)).map(x=>({...x, s:x.score(a)})).sort((x,y)=>y.s-x.s);
+  document.getElementById('nb-actions').textContent = list.length;
+  const plan = document.getElementById('plan');
+  const openIds = new Set([...plan.querySelectorAll('details[open]')].map(d=>d.dataset.id));
+  plan.innerHTML = list.map((x,i)=>{
+    const done = doneSet.has(x.id);
+    const open = openIds.size ? openIds.has(x.id) : i===0;
+    return `<li class="act${i<3?' top':''}${done?' done':''}"><details data-id="${x.id}"${open?' open':''}>
+      <summary><span class="num"></span><span><span class="act-title">${x.title}</span>
+        <span class="chips"><span class="chip g-${x.gain.toLowerCase()}">Gain ${x.gain.toLowerCase()}</span><span class="chip${x.level==='Avancé'?' l-avance':''}">${x.level}</span><span class="chip">${x.time}</span></span></span>
+        <span class="chev" aria-hidden="true">›</span></summary>
+      <div class="act-body">
+        <p class="why">${x.why}</p>
+        <ol class="steps">${x.steps.map(s=>`<li>${withCopy(s)}</li>`).join('')}</ol>
+        <button type="button" class="mark" data-done="${x.id}">${done?'Annuler':'C\'est fait'}</button>
+      </div></details></li>`;
+  }).join('');
+  const nDone = list.filter(x=>doneSet.has(x.id)).length;
+  document.getElementById('progress').textContent = `${nDone} / ${list.length} fait${nDone>1?'s':''}`;
+
+  // Réglages
+  const goalTxt = {fps:'Max FPS', equilibre:'Équilibré', beau:'Beau rendu'}[a.goal];
+  const gpuTxt = ['','entrée de gamme','milieu de gamme','haut de gamme'][+a.gpu];
+  document.getElementById('settings-for').textContent = `${goalTxt} · carte ${gpuTxt}`;
+  document.getElementById('settings').innerHTML = settingsFor(a).map(([n,v,c,note])=>`
+    <tr><td>${n}</td><td class="val">${v}</td><td class="note"><span class="cost" aria-label="Coût ${c} sur 4">${[1,2,3,4].map(i=>`<i class="${i<=c?'on':''}"></i>`).join('')}</span>${note}</td></tr>`).join('');
+
+  // CTA
+  const [ct, cx] = ctaFor(a);
+  document.getElementById('cta-title').textContent = ct;
+  document.getElementById('cta-text').textContent = cx;
+}
+
+// --- Envoi vers Discord (via la fonction Netlify, qui garde le webhook secret) ---
+function newCode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r='ADM-';
+  const rnd = new Uint32Array(5); crypto.getRandomValues(rnd);
+  rnd.forEach(n=>r+=c[n%c.length]); return r;
+}
+let DIAG = '';
+let submitted = false;
+const sentStatus = new Set();
+async function send(status){
+  const a = read();
+  const list = ACTIONS.filter(x=>x.when(a));
+  const body = {code:DIAG, status, answers:a, bottleneck:bottleneck(a)[2]||'aucun',
+    done:list.filter(x=>doneSet.has(x.id)).map(x=>x.id)};
+  try{
+    const r = await fetch('/.netlify/functions/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    return r.ok;
+  }catch(e){ return false; }
+}
+
+function setFeedback(state){
+  if(DIAG && !sentStatus.has(state)){ sentStatus.add(state); send(state==='ok'?'resolu':'non-resolu'); }
+  document.getElementById('fb-ok').setAttribute('aria-pressed', state==='ok');
+  document.getElementById('fb-ko').setAttribute('aria-pressed', state==='ko');
+  document.getElementById('msg-ok').hidden = state!=='ok';
+  document.getElementById('ko-zone').hidden = state!=='ko';
+  render();
+}
+document.getElementById('fb-ok').addEventListener('click', ()=>setFeedback('ok'));
+document.getElementById('fb-ko').addEventListener('click', ()=>setFeedback('ko'));
+const inv = document.getElementById('invite');
+inv.href = DISCORD_INVITE; inv.textContent = DISCORD_INVITE.replace(/^https?:\/\//,'');
+document.getElementById('copy-code').addEventListener('click', e=>{
+  const b = e.currentTarget;
+  const done = t=>{ b.textContent=t; setTimeout(()=>b.textContent='Copier le code',1500); };
+  const fallback = ()=>{ const r=document.createRange(); r.selectNodeContents(document.getElementById('diag-code')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); done('Code sélectionné'); };
+  try{ navigator.clipboard.writeText(DIAG).then(()=>done('Copié'), fallback); }catch(err){ fallback(); }
+});
+
+document.getElementById('form').addEventListener('change', ()=>{ if(submitted) render(); });
+document.getElementById('form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const a = read();
+  const missing = QUESTIONS.filter(q=>!q.multi && !a[q.id]).map(q=>q.label.toLowerCase());
+  const err = document.getElementById('form-error');
+  if(missing.length){
+    err.textContent = 'Il manque une réponse pour : ' + missing.join(', ') + '.';
+    err.hidden = false; return;
+  }
+  err.hidden = true;
+  DIAG = newCode(); sentStatus.clear();
+  document.getElementById('diag-code').textContent = DIAG;
+  setFeedbackView('');
+  submitted = true;
+  document.getElementById('empty').hidden = true;
+  document.getElementById('results').hidden = false;
+  document.getElementById('after').hidden = false;
+  document.getElementById('submit').textContent = 'Mettre à jour mon plan';
+  render();
+  if(window.matchMedia('(max-width:860px)').matches) document.getElementById('results').scrollIntoView({behavior:'smooth'});
+  send('nouveau');
+});
+function setFeedbackView(state){
+  document.getElementById('fb-ok').setAttribute('aria-pressed', state==='ok');
+  document.getElementById('fb-ko').setAttribute('aria-pressed', state==='ko');
+  document.getElementById('msg-ok').hidden = state!=='ok';
+  document.getElementById('ko-zone').hidden = state!=='ko';
+}
+document.getElementById('plan').addEventListener('click', e=>{
+  const b = e.target.closest('[data-done]');
+  if(b){ const id=b.dataset.done; doneSet.has(id)?doneSet.delete(id):doneSet.add(id); saveDone(); render(); return; }
+  const c = e.target.closest('[data-copy]');
+  if(c){
+    e.preventDefault();
+    const txt = c.dataset.copy.replace(/\\\\/g,'\\');
+    const ok = ()=>{ c.textContent='copié'; setTimeout(()=>c.textContent='copier',1500); };
+    const fallback = ()=>{ const code=c.previousElementSibling; const r=document.createRange(); r.selectNodeContents(code); const s=getSelection(); s.removeAllRanges(); s.addRange(r); c.textContent='sélectionné'; setTimeout(()=>c.textContent='copier',1500); };
+    try{ navigator.clipboard.writeText(txt).then(ok, fallback); }catch(err){ fallback(); }
+  }
+});
+</script>
+</body>
+</html>

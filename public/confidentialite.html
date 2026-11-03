@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Données personnelles · ADMSTUDIOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#0d1115; --panel:#141a20; --line:#26303a; --fg:#e7ecf0; --muted:#8996a2; --accent:#f2a93b;
+  --f-display:"Chakra Petch", "Bahnschrift", "Arial Narrow", sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#eef1f3; --panel:#ffffff; --line:#d7dde2; --fg:#12181d; --muted:#5b6670; --accent:#b86e00; color-scheme:light; }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15.5px;line-height:1.65;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:28px 56px}
+main{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
+a{color:var(--accent)}
+.back{font-size:14px}
+h1,h2{font-family:var(--f-display);margin:0;line-height:1.2;text-wrap:balance}
+h1{font-size:clamp(28px,5vw,38px)}
+h2{font-size:20px;margin-bottom:8px}
+p,ul{margin:0}
+ul{padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.muted{color:var(--muted)}
+section{border-top:1px solid var(--line);padding-top:20px}
+.todo{background:color-mix(in srgb, var(--accent) 18%, transparent);padding:0 4px;border-radius:3px}
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">← Retour au diagnostic</a>
+  <div>
+    <h1>Tes données personnelles</h1>
+    <p class="muted">Ce qu'on garde quand tu fais un diagnostic sur ADMSTUDIOS, pourquoi, et comment le faire supprimer.</p>
+  </div>
+
+  <section>
+    <h2>Qui est responsable</h2>
+    <p>Le site ADMSTUDIOS est édité par <span class="todo">[NOM ET PRÉNOM DU RESPONSABLE]</span>. Pour toute question sur tes données : <span class="todo">[ADRESSE E-MAIL DE CONTACT]</span>.</p>
+  </section>
+
+  <section>
+    <h2>Ce qu'on garde</h2>
+    <p>Quand tu cliques sur « Voir mon plan », on enregistre :</p>
+    <ul>
+      <li>tes réponses au questionnaire : type de PC, gamme de carte graphique et de processeur, quantité de RAM, type de disque, problèmes cochés et objectif ;</li>
+      <li>le code de diagnostic qui t'est attribué (ADM-XXXXX) ;</li>
+      <li>si tu nous le dis, le fait que les conseils ont marché ou non, avec la liste des étapes que tu as cochées comme faites.</li>
+    </ul>
+    <p style="margin-top:10px">On ne demande ni ton nom, ni ton e-mail, ni ton pseudo Discord. Le diagnostic est anonyme, sauf si tu nous donnes toi-même ton code dans un ticket.</p>
+  </section>
+
+  <section>
+    <h2>Pourquoi</h2>
+    <ul>
+      <li>Pour retrouver ta config tout de suite si tu ouvres un ticket, sans te reposer les questions.</li>
+      <li>Pour voir quels conseils marchent et améliorer le diagnostic.</li>
+    </ul>
+    <p style="margin-top:10px">C'est fondé sur notre intérêt légitime à faire fonctionner et améliorer le service.</p>
+  </section>
+
+  <section>
+    <h2>Où vont tes données</h2>
+    <p>Tes réponses sont envoyées dans un salon privé du Discord ADMSTUDIOS, visible seulement par l'équipe. Discord est un service américain, et le site est hébergé par Netlify, Inc., également aux États-Unis, qui peut garder des données techniques comme ton adresse IP dans ses journaux. Ces données ne sont ni vendues, ni partagées avec qui que ce soit d'autre.</p>
+  </section>
+
+  <section>
+    <h2>Combien de temps</h2>
+    <p>Les diagnostics sont supprimés au plus tard 12 mois après leur envoi.</p>
+    <p style="margin-top:10px">Les étapes que tu coches « C'est fait » sont aussi gardées dans ton navigateur, pour que tu retrouves ta progression. Tu peux les effacer en vidant les données du site dans ton navigateur.</p>
+  </section>
+
+  <section>
+    <h2>Tes droits</h2>
+    <p>Tu peux demander à voir, corriger ou supprimer tes données, ou t'opposer à leur utilisation. Envoie ta demande avec ton code de diagnostic, en ouvrant un ticket sur notre Discord ou par e-mail à l'adresse ci-dessus. On te répond sous un mois.</p>
+    <p style="margin-top:10px">Si tu penses que tes droits ne sont pas respectés, tu peux faire une réclamation auprès de la CNIL sur <a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a>.</p>
+  </section>
+
+  <p class="muted" style="font-size:13px">Dernière mise à jour : 4 novembre 2026</p>
+</main>
+</body>
+</html>
