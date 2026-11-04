@@ -18,21 +18,22 @@ const LABELS = {
     cpu: 'Le processeur', gpu: 'La carte graphique', aucun: 'Rien de flagrant',
   },
   actions: {
-    'gpu-laptop': 'Forcer la carte graphique dédiée', ram8: 'Passer à 16 Go de RAM',
-    'ram-xmp': 'Activer le profil XMP/EXPO', ssd: 'Installer GTA sur un SSD',
-    temps: 'Vérifier les températures', drivers: 'Mettre à jour le pilote graphique',
-    ddu: 'Réinstaller le pilote avec DDU', cache: 'Vider le cache FiveM',
-    mods: 'Retirer les packs lourds et ReShade', gta: 'Réglages GTA conseillés',
-    overlays: 'Couper les overlays', fond: 'Fermer ce qui tourne en fond',
-    power: 'Mode performances', cap: 'Limiter les FPS', lag: "Réduire l'input lag",
-    files: 'Vérifier les fichiers de GTA', hags: 'Tester la planification GPU',
+    'gpu-laptop': 'Forcer la vraie carte graphique', ram8: 'Passer à 16 Go de RAM',
+    ssd: 'Mettre GTA sur un SSD', 'ram-xmp': 'Débrider la RAM (XMP)',
+    temps: 'Arrêter la surchauffe', gta: 'Couper les 3 réglages GTA',
+    hz: 'Vérifier les Hz de l\'écran', cache: 'Vider le cache FiveM',
+    textures: 'Budget de textures', drivers: 'Mettre à jour le pilote',
+    lag: "Supprimer l'input lag", shaders: 'Cache des shaders illimité',
+    cap: 'Bloquer les FPS', overlays: 'Couper les overlays',
+    power: 'Mode performances', mods: 'Retirer les mods lourds',
+    files: 'Réparer les fichiers de GTA',
   },
 };
 
 const STATUS = {
-  nouveau: { title: 'Nouvelle config', color: 0xf2a93b },
+  nouveau: { title: 'Nouvelle config', color: 0x9b6bff },
   resolu: { title: 'Résolu', color: 0x5cc98a },
-  'non-resolu': { title: 'Non résolu, ticket probable', color: 0xef6b5b },
+  'non-resolu': { title: 'Non résolu · ticket à venir', color: 0xfb7185 },
 };
 
 const bad = (msg) => new Response(msg, { status: 400 });
@@ -61,6 +62,12 @@ export default async (req) => {
   }
   if (!Array.isArray(a.pb) || a.pb.length > 6 || !a.pb.every((p) => known(LABELS.pb, p))) return bad('Problèmes invalides');
   if (!known(LABELS.bottleneck, bottleneck)) return bad('Goulot invalide');
+  let message = '';
+  if (body.message !== undefined) {
+    if (typeof body.message !== 'string') return bad('Message invalide');
+    // Texte libre du joueur : on retire les caractères invisibles et on coupe à 500 caractères.
+    message = body.message.replace(/[\u0000-\u0009\u000B-\u001F\u007F\u200B-\u200F\u2028-\u202E]/g, '').trim().slice(0, 500);
+  }
   if (!Array.isArray(done) || done.length > 20 || !done.every((d) => known(LABELS.actions, d))) return bad('Étapes invalides');
 
   const fields = [
@@ -79,6 +86,8 @@ export default async (req) => {
       value: done.length ? done.map((d) => `• ${LABELS.actions[d]}`).join('\n') : 'Rien coché comme fait',
     });
   }
+
+  if (message) fields.unshift({ name: '❗ Ce qui ne va toujours pas', value: message });
 
   const res = await fetch(webhook, {
     method: 'POST',

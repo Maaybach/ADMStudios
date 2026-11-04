@@ -9,14 +9,12 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
 :root{
-  --bg:#0d1115; --panel:#141a20; --line:#26303a; --fg:#e7ecf0; --muted:#8996a2; --accent:#f2a93b;
+  --bg:#0e0a1a; --panel:#17112a; --line:#30274f; --fg:#ffffff; --muted:#b7aed3; --accent:#9b6bff;
   --f-display:"Chakra Petch", "Bahnschrift", "Arial Narrow", sans-serif;
   --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   color-scheme:dark;
 }
-@media (prefers-color-scheme: light){
-  :root{ --bg:#eef1f3; --panel:#ffffff; --line:#d7dde2; --fg:#12181d; --muted:#5b6670; --accent:#b86e00; color-scheme:light; }
-}
+
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15.5px;line-height:1.65;
@@ -53,7 +51,8 @@ section{border-top:1px solid var(--line);padding-top:20px}
     <ul>
       <li>tes réponses au questionnaire : type de PC, gamme de carte graphique et de processeur, quantité de RAM, type de disque, problèmes cochés et objectif ;</li>
       <li>le code de diagnostic qui t'est attribué (ADM-XXXXX) ;</li>
-      <li>si tu nous le dis, le fait que les conseils ont marché ou non, avec la liste des étapes que tu as cochées comme faites.</li>
+      <li>si tu nous le dis, le fait que les conseils ont marché ou non, avec la liste des étapes que tu as cochées comme faites ;</li>
+      <li>si ça n'a pas marché, le texte où tu décris ton problème. N'y mets pas d'informations personnelles.</li>
     </ul>
     <p style="margin-top:10px">On ne demande ni ton nom, ni ton e-mail, ni ton pseudo Discord. Le diagnostic est anonyme, sauf si tu nous donnes toi-même ton code dans un ticket.</p>
   </section>
@@ -75,12 +74,12 @@ section{border-top:1px solid var(--line);padding-top:20px}
   <section>
     <h2>Combien de temps</h2>
     <p>Les diagnostics sont supprimés au plus tard 12 mois après leur envoi.</p>
-    <p style="margin-top:10px">Les étapes que tu coches « C'est fait » sont aussi gardées dans ton navigateur, pour que tu retrouves ta progression. Tu peux les effacer en vidant les données du site dans ton navigateur.</p>
+    <p style="margin-top:10px">Le site n'enregistre rien dans ton navigateur.</p>
   </section>
 
   <section>
     <h2>Tes droits</h2>
-    <p>Tu peux demander à voir, corriger ou supprimer tes données, ou t'opposer à leur utilisation. Envoie ta demande avec ton code de diagnostic, en ouvrant un ticket sur notre Discord ou par e-mail à l'adresse ci-dessus. On te répond sous un mois.</p>
+    <p>Tu peux demander à voir, corriger ou supprimer tes données, ou t'opposer à leur utilisation. Envoie ta demande avec ton code de diagnostic, en ouvrant un ticket sur notre Discord (discord.gg/anone) ou par e-mail à l'adresse ci-dessus. On te répond sous un mois.</p>
     <p style="margin-top:10px">Si tu penses que tes droits ne sont pas respectés, tu peux faire une réclamation auprès de la CNIL sur <a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a>.</p>
   </section>
 
