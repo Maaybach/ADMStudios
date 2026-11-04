@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ADMSTUDIOS · Optimise ton PC pour FiveM</title>
-<meta name="description" content="Gagne des FPS et arrête les crashs sur FiveM. Ta config, ton plan en 7 actions, et l'équipe ADMSTUDIOS si ça bloque.">
+<meta name="description" content="Gagne des FPS et arrête les crashs sur FiveM. Ta config, ton plan, ton score d'optimisation, et l'équipe ADMSTUDIOS si ça bloque.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Parcours en 3 étapes sur une seule colonne : config → plan → résultat. Identité blanc et violet. */
+/* Interface de jeu nocturne : pluie violette en fond, cartes HUD à coins marqués, une question par écran. */
 :root{
-  --bg:#0e0a1a; --panel:#17112a; --panel-2:#1f1838; --line:#30274f;
-  --fg:#ffffff; --muted:#b7aed3; --violet:#9b6bff; --violet-deep:#6d3df0; --violet-ink:#ffffff;
+  --bg:#0b0816; --panel:#151027; --panel-2:#1d1636; --line:#31285a;
+  --fg:#ffffff; --muted:#b9b0d8; --violet:#a277ff; --violet-deep:#6d3df0; --glow:rgba(150,100,255,.35);
   --good:#4ade80; --bad:#fb7185;
   --f-display:"Chakra Petch", "Bahnschrift", "Arial Narrow", sans-serif;
   --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
@@ -22,119 +22,192 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;
-  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:24px 56px;
-  background-image:radial-gradient(900px 420px at 50% -120px, color-mix(in srgb, var(--violet-deep) 28%, transparent), transparent 70%);background-repeat:no-repeat}
-.wrap{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
-h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.15;text-wrap:balance}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;min-height:100vh;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:24px 56px}
+/* Décor fixe : halo + grille + pluie (canvas) */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(1000px 520px at 50% -160px, rgba(120,70,255,.38), transparent 70%),
+    radial-gradient(700px 400px at 100% 110%, rgba(120,70,255,.18), transparent 70%),
+    linear-gradient(rgba(162,119,255,.06) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, rgba(162,119,255,.06) 1px, transparent 1px) 0 0 / 44px 44px;
+  -webkit-mask-image:linear-gradient(#000 0, #000 60%, transparent 100%);mask-image:linear-gradient(#000 0, #000 60%, transparent 100%)}
+#rain{position:fixed;inset:0;z-index:-1;pointer-events:none;width:100%;height:100%}
+#confetti{position:fixed;inset:0;z-index:50;pointer-events:none;width:100%;height:100%}
+
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.12;text-wrap:balance}
 p{margin:0}
 code{font-family:var(--f-mono);font-size:.84em;background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;word-break:break-all}
-button{font-family:inherit}
+button{font-family:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--violet);outline-offset:2px}
 
-/* En-tête + étapes */
-header{display:flex;flex-direction:column;gap:20px;align-items:center;text-align:center}
-.logo{font-size:clamp(34px,7vw,50px);font-weight:700;letter-spacing:.02em}
+/* En-tête */
+header{display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center;padding-top:6px}
+.logo{font-size:clamp(38px,8vw,58px);font-weight:700;letter-spacing:.03em;text-shadow:0 0 34px var(--glow)}
 .logo span{color:var(--violet)}
-.tagline{color:var(--muted);max-width:46ch}
+.tagline{color:var(--muted);max-width:44ch}
 .stepper{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}
-.stepper li{display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-align:left;font-size:13px;color:var(--muted)}
-.stepper li::before{content:"";display:block;width:100%;height:4px;border-radius:2px;background:var(--line)}
-.stepper li.on::before,.stepper li.past::before{background:var(--violet)}
+.stepper li{display:flex;flex-direction:column;gap:8px;text-align:left;font-size:13px;color:var(--muted)}
+.stepper li::before{content:"";height:4px;border-radius:2px;background:var(--line);transition:background .4s, box-shadow .4s}
+.stepper li.past::before{background:var(--violet)}
+.stepper li.on::before{background:var(--violet);box-shadow:0 0 12px var(--glow)}
 .stepper li.on{color:var(--fg);font-weight:600}
 .stepper b{font-family:var(--f-mono);color:var(--violet);margin-right:6px}
 
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:20px}
-.card-head{display:flex;flex-direction:column;gap:6px}
-.card-head h2{font-size:clamp(22px,4vw,28px)}
-.card-head p{color:var(--muted)}
+/* Carte HUD : bord dégradé + coins marqués */
+.hud{position:relative;border:1px solid transparent;border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:20px;
+  background:linear-gradient(var(--panel),var(--panel)) padding-box,
+             linear-gradient(140deg, rgba(162,119,255,.75), rgba(162,119,255,.12) 35%, rgba(162,119,255,.12) 65%, rgba(162,119,255,.6)) border-box;
+  box-shadow:0 20px 60px -30px rgba(110,60,240,.6)}
+.hud::before,.hud::after{content:"";position:absolute;width:18px;height:18px;border-color:var(--violet);border-style:solid;pointer-events:none}
+.hud::before{top:-1px;left:-1px;border-width:2px 0 0 2px;border-top-left-radius:14px}
+.hud::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;border-bottom-right-radius:14px}
+.screen{animation:enter .45s cubic-bezier(.2,.7,.2,1)}
+@keyframes enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-/* Étape 1 */
-.qs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 20px}
-@media (max-width:640px){.qs{grid-template-columns:minmax(0,1fr)}}
-.q{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:8px}
-.q.wide{grid-column:1 / -1}
-.q legend{font-family:var(--f-display);font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.08em;padding:0;margin-bottom:8px}
-.hint{font-size:12.5px;color:var(--muted);margin-top:-2px}
-.opts{display:flex;flex-wrap:wrap;gap:8px}
-.opts.stack{flex-direction:column}
-.opt{position:relative}
-.opt input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.opt label{display:flex;flex-direction:column;gap:1px;padding:9px 13px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);cursor:pointer;transition:border-color .15s, background .15s}
-.opt label .t{font-weight:500}
-.opt label .s{font-size:12px;color:var(--muted)}
-.opt label:hover{border-color:color-mix(in srgb, var(--violet) 60%, var(--line))}
-.opt input:checked + label{border-color:var(--violet);background:color-mix(in srgb, var(--violet) 20%, var(--panel-2))}
-.opt input:focus-visible + label{outline:2px solid var(--violet);outline-offset:2px}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.eyebrow b{color:var(--violet)}
+.qprog{height:3px;border-radius:2px;background:var(--line);overflow:hidden}
+.qprog i{display:block;height:100%;background:var(--violet);box-shadow:0 0 10px var(--glow);transition:width .35s}
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--f-display);font-weight:700;font-size:16px;letter-spacing:.04em;text-transform:uppercase;padding:13px 20px;border-radius:9px;border:0;background:var(--violet-deep);color:var(--violet-ink);cursor:pointer;text-decoration:none}
-.btn:hover{background:color-mix(in srgb, var(--violet-deep) 85%, white)}
-.btn:disabled{opacity:.6;cursor:wait}
-.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);font-family:var(--f-body);font-weight:600;font-size:14px;text-transform:none;letter-spacing:0}
+/* Étape 1 : une question par écran */
+.qhead{display:flex;flex-direction:column;gap:6px}
+.qhead h2{font-size:clamp(26px,5vw,34px)}
+.qhead p{color:var(--muted);font-size:14px}
+.qbox{display:flex;flex-direction:column;gap:18px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tile{position:relative;display:flex;flex-direction:column;gap:10px;align-items:flex-start;text-align:left;padding:18px;border-radius:12px;
+  border:1px solid var(--line);background:var(--panel-2);cursor:pointer;transition:transform .15s, border-color .15s, box-shadow .15s, background .15s;min-width:0}
+.tile:hover{transform:translateY(-2px);border-color:color-mix(in srgb, var(--violet) 70%, var(--line));box-shadow:0 10px 30px -14px var(--glow)}
+.tile[aria-pressed="true"]{border-color:var(--violet);background:color-mix(in srgb, var(--violet) 22%, var(--panel-2));box-shadow:0 0 0 1px var(--violet), 0 12px 34px -12px var(--glow)}
+.tile svg{width:34px;height:34px;color:var(--violet)}
+.tile .t{font-family:var(--f-display);font-weight:700;font-size:18px;line-height:1.2}
+.tile .s{font-size:12.5px;color:var(--muted)}
+.tile .tick{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700}
+.tile[aria-pressed="true"] .tick{background:var(--violet);border-color:var(--violet);color:#160b33}
+.tile[aria-pressed="true"] .tick::before{content:"✓"}
+.qnav{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;min-height:46px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--f-display);font-weight:700;font-size:16px;letter-spacing:.05em;text-transform:uppercase;
+  padding:13px 22px;border-radius:10px;border:0;background:linear-gradient(135deg, #8a5bff, var(--violet-deep));color:#fff;cursor:pointer;text-decoration:none;box-shadow:0 10px 30px -12px var(--glow);transition:transform .15s, box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 14px 36px -10px var(--glow)}
+.btn:disabled{opacity:.6;cursor:wait;transform:none}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);font-family:var(--f-body);font-weight:600;font-size:14px;text-transform:none;letter-spacing:0;box-shadow:none}
 .btn.ghost:hover{border-color:var(--violet);color:var(--fg)}
-.actions-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
-.form-error{color:var(--bad);font-size:13.5px;font-weight:500}
+.note{font-size:12.5px;color:var(--muted)}
+.note a{color:var(--muted)}
+
+/* Analyse */
+.scan{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;font-family:var(--f-mono);font-size:14px}
+.scan li{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;opacity:0;transform:translateX(-8px);transition:opacity .3s, transform .3s}
+.scan li.show{opacity:1;transform:none}
+.scan .ic{color:var(--good)}
+.scan .weak .ic,.scan .weak .st{color:var(--violet)}
+.scan .st{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.scanbar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.scanbar i{display:block;height:100%;width:0;background:linear-gradient(90deg, var(--violet-deep), var(--violet));box-shadow:0 0 12px var(--glow);transition:width 2.3s linear}
 
 /* Étape 2 */
-.verdict{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:10px;background:color-mix(in srgb, var(--violet) 14%, var(--panel-2));border:1px solid color-mix(in srgb, var(--violet) 45%, var(--line))}
-.verdict .tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);white-space:nowrap;padding-top:3px}
-.verdict b{display:block;font-size:16px}
-.verdict span{color:var(--muted);font-size:14px}
-.summary{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-.summary b{color:var(--fg)}
+.sticky{position:sticky;top:env(safe-area-inset-top, 0px);z-index:5;display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:12px;
+  background:color-mix(in srgb, var(--panel) 88%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);font-family:var(--f-mono);font-size:12.5px}
+.sticky b{color:var(--violet);font-size:15px}
+.sticky .bar{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden;min-width:60px}
+.sticky .bar i{display:block;height:100%;background:var(--violet);box-shadow:0 0 10px var(--glow);transition:width .5s}
+.top2{display:grid;grid-template-columns:150px minmax(0,1fr);gap:22px;align-items:center}
+@media (max-width:540px){.top2{grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center}}
+.ring{position:relative;width:150px;height:150px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:10}
+.ring .bg{stroke:var(--line)}
+.ring .fg{stroke:url(#ringgrad);stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.2,.7,.2,1);filter:drop-shadow(0 0 6px rgba(162,119,255,.6))}
+.ring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .num{font-family:var(--f-display);font-size:44px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.ring .lbl{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-top:4px}
+.top2 h2{font-size:clamp(24px,4.5vw,30px)}
+.why{display:flex;flex-direction:column;gap:8px}
+.why p{color:var(--muted)}
+.weak-tag{display:inline-flex;gap:8px;align-items:center;align-self:flex-start;font-family:var(--f-mono);font-size:12px;padding:5px 10px;border-radius:6px;background:color-mix(in srgb, var(--violet) 18%, transparent);border:1px solid color-mix(in srgb, var(--violet) 50%, transparent)}
+@media (max-width:540px){.weak-tag{align-self:center}}
+.weak-tag b{color:var(--violet)}
+
 .plan{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:n}
-.act{counter-increment:n;display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2)}
-.act::before{content:counter(n);font-family:var(--f-mono);font-weight:700;font-size:14px;color:var(--violet);width:30px;height:30px;border-radius:50%;border:1px solid color-mix(in srgb, var(--violet) 55%, var(--line));display:grid;place-items:center}
-.act.done{opacity:.55}
-.act.done::before{content:"✓";background:var(--violet-deep);color:#fff;border-color:var(--violet-deep)}
-.act-main{min-width:0;display:flex;flex-direction:column;gap:8px}
+.act{counter-increment:n;display:grid;grid-template-columns:32px minmax(0,1fr);gap:14px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2);transition:border-color .2s, opacity .2s}
+.act::before{content:counter(n);font-family:var(--f-mono);font-weight:700;font-size:14px;color:var(--violet);width:32px;height:32px;border-radius:9px;border:1px solid color-mix(in srgb, var(--violet) 55%, var(--line));display:grid;place-items:center}
+.act.done{opacity:.6}
+.act.done::before{content:"✓";background:var(--violet);color:#160b33;border-color:var(--violet)}
+.act-main{min-width:0;display:flex;flex-direction:column;gap:9px}
 .act-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;justify-content:space-between}
 .act-title{font-weight:600;font-size:16px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{font-family:var(--f-mono);font-size:11px;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
-.chip.gros{border-color:var(--good);color:var(--good)}
+.chip.pts{border-color:color-mix(in srgb, var(--violet) 60%, var(--line));color:var(--violet);font-weight:700}
 .act ol{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:14.5px}
 .act ol strong{color:var(--fg);font-weight:600}
-.act-foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.check{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;cursor:pointer;padding:6px 12px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--fg)}
+.check{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;font-size:13.5px;font-weight:600;cursor:pointer;padding:7px 13px;border-radius:8px;border:1px solid var(--line);background:transparent;transition:border-color .15s, background .15s}
+.check:hover{border-color:var(--violet)}
 .check input{accent-color:var(--violet);width:16px;height:16px;margin:0}
+.done .check{background:color-mix(in srgb, var(--violet) 16%, transparent);border-color:var(--violet)}
 .copy{font-family:var(--f-mono);font-size:11px;margin-left:4px;padding:1px 6px;border-radius:4px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;vertical-align:1px}
 .copy:hover{color:var(--violet);border-color:var(--violet)}
 details.more summary{cursor:pointer;font-size:13.5px;color:var(--violet);font-weight:600}
 .table-wrap{overflow-x:auto;margin-top:8px}
-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:340px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:300px}
 td{padding:6px 8px;border-bottom:1px solid var(--line)}
 td.v{font-family:var(--f-mono);color:var(--violet);font-weight:700;white-space:nowrap;text-align:right}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
 
 /* Étape 3 */
 .fb-btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media (max-width:480px){.fb-btns{grid-template-columns:minmax(0,1fr)}}
-.fb{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;padding:18px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);cursor:pointer}
-.fb b{font-family:var(--f-display);font-size:19px}
+.fb{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:20px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);cursor:pointer;transition:transform .15s, border-color .15s}
+.fb:hover{transform:translateY(-2px)}
+.fb svg{width:30px;height:30px}
+.fb b{font-family:var(--f-display);font-size:20px}
 .fb span{font-size:13.5px;color:var(--muted)}
-.fb.ok b{color:var(--good)}
-.fb.ko b{color:var(--bad)}
+.fb.ok svg,.fb.ok b{color:var(--good)}
+.fb.ko svg,.fb.ko b{color:var(--bad)}
 .fb[aria-pressed="true"].ok{border-color:var(--good);background:color-mix(in srgb, var(--good) 12%, var(--panel-2))}
 .fb[aria-pressed="true"].ko{border-color:var(--bad);background:color-mix(in srgb, var(--bad) 12%, var(--panel-2))}
 .zone{display:flex;flex-direction:column;gap:12px}
 .zone label{font-weight:600}
-textarea{font-family:var(--f-body);font-size:14.5px;min-height:110px;padding:12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);resize:vertical;width:100%}
+textarea{font-family:var(--f-body);font-size:14.5px;min-height:110px;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);resize:vertical;width:100%}
+textarea:focus{border-color:var(--violet)}
 .count{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);text-align:right}
-.code-box{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border:1px dashed var(--violet);border-radius:10px;background:var(--panel-2)}
-.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.code-val{font-family:var(--f-mono);font-size:28px;font-weight:700;color:var(--violet);letter-spacing:.06em}
+.form-error{color:var(--bad);font-size:13.5px;font-weight:500}
+.warn{font-size:13.5px;color:var(--bad)}
+.good-msg{font-family:var(--f-display);font-size:24px;font-weight:700;color:var(--good)}
+
+/* Ticket de diagnostic façon carte à collectionner */
+.ticket{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 92px;border-radius:14px;overflow:hidden;
+  background:linear-gradient(135deg,#2a1858,#160f2e 55%,#2b1660);border:1px solid color-mix(in srgb, var(--violet) 70%, transparent);box-shadow:0 18px 50px -20px var(--glow)}
+.ticket::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:.35;
+  background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.35) 45%, rgba(190,150,255,.25) 50%, transparent 62%);background-size:250% 100%;animation:holo 4.5s ease-in-out infinite}
+@keyframes holo{0%{background-position:120% 0}100%{background-position:-120% 0}}
+.t-main{padding:20px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.t-code{font-family:var(--f-mono);font-size:clamp(26px,6vw,36px);font-weight:700;letter-spacing:.06em;color:#fff;text-shadow:0 0 18px var(--glow)}
+.t-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.t-meta b{color:var(--fg)}
+.t-stub{border-left:2px dashed color-mix(in srgb, var(--violet) 60%, transparent);display:flex;align-items:center;justify-content:center;position:relative}
+.t-stub::before,.t-stub::after{content:"";position:absolute;left:-11px;width:20px;height:20px;border-radius:50%;background:var(--panel)}
+.t-stub::before{top:-10px}.t-stub::after{bottom:-10px}
+.t-stub span{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--f-display);font-weight:700;letter-spacing:.3em;font-size:13px;color:var(--violet)}
 .howto{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--muted)}
 .howto strong{color:var(--fg)}
-.note{font-size:13px;color:var(--muted)}
-.warn{font-size:13.5px;color:var(--bad)}
-.good-msg{font-size:16px;font-weight:600;color:var(--good)}
 
 footer{color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:16px;display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between}
 footer a{color:var(--muted)}
-@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .scan li{opacity:1;transform:none}
+}
 </style>
 </head>
 <body>
+<canvas id="rain" aria-hidden="true"></canvas>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ringgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c4dff"/><stop offset="1" stop-color="#d4b8ff"/></linearGradient></defs></svg>
+
 <div class="wrap">
   <header>
     <h1 class="logo">ADM<span>STUDIOS</span></h1>
@@ -146,52 +219,80 @@ footer a{color:var(--muted)}
     </ol>
   </header>
 
-  <!-- ÉTAPE 1 -->
-  <section class="card" id="step1">
-    <div class="card-head">
-      <h2>Ta config</h2>
-      <p>7 questions, une minute. Tu ne sais pas ? Gestionnaire des tâches (Ctrl + Maj + Échap) → Performances.</p>
+  <!-- ÉTAPE 1 : une question par écran -->
+  <section class="hud screen" id="step1">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="eyebrow">Question <b id="qn">1</b> / <span id="qt">7</span></div>
+      <div class="qprog"><i id="qbar" style="width:0"></i></div>
     </div>
-    <form id="form" class="qs" novalidate></form>
-    <p class="form-error" id="form-error" role="alert" hidden></p>
-    <div class="actions-row">
-      <span class="note">Ta config est envoyée à l'équipe ADMSTUDIOS, sans ton nom. <a href="/confidentialite.html" style="color:var(--muted)">En savoir plus</a></span>
-      <button type="submit" form="form" class="btn" id="go2">Voir mon plan →</button>
+    <div class="qbox" id="qbox"></div>
+    <div class="qnav">
+      <button type="button" class="btn ghost" id="qback">← Retour</button>
+      <button type="button" class="btn" id="qnext" hidden>Continuer →</button>
+    </div>
+    <p class="note">Ta config est envoyée à l'équipe ADMSTUDIOS, sans ton nom. <a href="/confidentialite.html">En savoir plus</a></p>
+  </section>
+
+  <!-- ANALYSE -->
+  <section class="hud screen" id="analyse" hidden>
+    <div class="qhead">
+      <div class="eyebrow">Diagnostic en cours</div>
+      <h2>Analyse de ta config</h2>
+    </div>
+    <ul class="scan" id="scan"></ul>
+    <div class="scanbar"><i id="scanbar"></i></div>
+  </section>
+
+  <!-- ÉTAPE 2 : le plan -->
+  <section id="step2" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="sticky" id="sticky">
+      <span>Score <b id="s-score">0</b></span>
+      <span class="bar"><i id="s-bar" style="width:0"></i></span>
+      <span><b id="s-done">0</b>/<span id="s-total">0</span> faites</span>
+    </div>
+    <div class="hud screen">
+      <div class="top2">
+        <div class="ring" aria-label="Score d'optimisation">
+          <svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="52"/><circle class="fg" id="ring" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"/></svg>
+          <div class="val"><span class="num" id="ring-num">0</span><span class="lbl">sur 100</span></div>
+        </div>
+        <div class="why">
+          <div class="eyebrow">Score d'optimisation</div>
+          <h2 id="ring-title"></h2>
+          <span class="weak-tag" id="weak"></span>
+          <p id="summary"></p>
+        </div>
+      </div>
+      <ol class="plan" id="plan"></ol>
+      <div class="row">
+        <button type="button" class="btn ghost" id="back1">← Modifier ma config</button>
+        <button type="button" class="btn" id="go3">J'ai testé en jeu →</button>
+      </div>
     </div>
   </section>
 
-  <!-- ÉTAPE 2 -->
-  <section class="card" id="step2" hidden>
-    <div class="card-head">
-      <h2>Ton plan</h2>
-      <p class="summary" id="summary"></p>
-    </div>
-    <div class="verdict" id="verdict"></div>
-    <ol class="plan" id="plan"></ol>
-    <div class="actions-row">
-      <button type="button" class="btn ghost" id="back1">← Modifier ma config</button>
-      <button type="button" class="btn" id="go3">J'ai testé en jeu →</button>
-    </div>
-  </section>
-
-  <!-- ÉTAPE 3 -->
-  <section class="card" id="step3" hidden>
-    <div class="card-head">
+  <!-- ÉTAPE 3 : résultat -->
+  <section class="hud screen" id="step3" hidden>
+    <div class="qhead">
       <h2>Alors, ça a marché ?</h2>
       <p>Lance FiveM, va dans un endroit chargé (en ville, avec du monde) et joue 10 minutes.</p>
     </div>
     <div class="fb-btns">
-      <button type="button" class="fb ok" id="fb-ok" aria-pressed="false"><b>Oui, c'est mieux</b><span>Mes FPS ou mes crashs vont mieux</span></button>
-      <button type="button" class="fb ko" id="fb-ko" aria-pressed="false"><b>Non, toujours pas</b><span>J'ai encore un souci</span></button>
+      <button type="button" class="fb ok" id="fb-ok" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg>
+        <b>Oui, c'est mieux</b><span>Mes FPS ou mes crashs vont mieux</span></button>
+      <button type="button" class="fb ko" id="fb-ko" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+        <b>Non, toujours pas</b><span>J'ai encore un souci</span></button>
     </div>
 
-    <div class="zone" id="zone-ok" hidden>
-      <p class="good-msg">Parfait, bon jeu ! Merci pour le retour.</p>
-      <p class="note">Envie d'un plus beau rendu sans perdre tes FPS ? Crée un pack graphique adapté à ton PC sur Dictature Pack.</p>
+    <div class="zone screen" id="zone-ok" hidden>
+      <p class="good-msg">GG, bon jeu !</p>
+      <p class="note" style="font-size:14px">Envie d'un plus beau rendu sans perdre tes FPS ? Crée un pack graphique adapté à ton PC sur Dictature Pack.</p>
       <a class="btn" href="https://dictature-pack.fr/" target="_blank" rel="noopener" style="align-self:flex-start">Créer mon pack</a>
     </div>
 
-    <div class="zone" id="zone-ko" hidden>
+    <div class="zone screen" id="zone-ko" hidden>
       <label for="ko-text">Qu'est-ce qui ne va toujours pas ?</label>
       <textarea id="ko-text" maxlength="500" placeholder="Ex : je suis à 40 FPS en ville et ça freeze quand j'arrive au parking central, surtout le soir quand le serveur est plein."></textarea>
       <div class="count" id="ko-count">0 / 500</div>
@@ -199,11 +300,16 @@ footer a{color:var(--muted)}
       <button type="button" class="btn" id="ko-send" style="align-self:flex-start">Envoyer à l'équipe</button>
     </div>
 
-    <div class="zone" id="zone-code" hidden>
-      <div class="code-box">
-        <div><div class="eyebrow">Ton code de diagnostic</div><div class="code-val" id="diag-code"></div></div>
-        <button type="button" class="btn ghost" id="copy-code">Copier le code</button>
+    <div class="zone screen" id="zone-code" hidden>
+      <div class="ticket">
+        <div class="t-main">
+          <div class="eyebrow">ADMSTUDIOS · Ticket de diagnostic</div>
+          <div class="t-code" id="diag-code"></div>
+          <div class="t-meta" id="t-meta"></div>
+        </div>
+        <div class="t-stub"><span>SUPPORT</span></div>
       </div>
+      <button type="button" class="btn ghost" id="copy-code" style="align-self:flex-start">Copier le code</button>
       <p class="warn" id="send-warn" hidden>L'envoi à l'équipe n'a pas marché. Pas grave : dans ton ticket, donne ton code et décris ton problème.</p>
       <ol class="howto">
         <li>Rejoins le Discord <strong>discord.gg/anone</strong></li>
@@ -213,7 +319,7 @@ footer a{color:var(--muted)}
       <a class="btn" href="https://discord.gg/anone" target="_blank" rel="noopener" style="align-self:flex-start">Rejoindre le Discord</a>
     </div>
 
-    <div class="actions-row">
+    <div class="row">
       <button type="button" class="btn ghost" id="back2">← Revoir mon plan</button>
     </div>
   </section>
@@ -225,21 +331,46 @@ footer a{color:var(--muted)}
 </div>
 
 <script>
+// ---------- Icônes ----------
+const I = {
+  tower:'<rect x="6.5" y="2.5" width="11" height="19" rx="2"/><path d="M9.5 6.5h5M9.5 9.5h5"/><circle cx="12" cy="16.5" r="1.4"/>',
+  laptop:'<rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19.5h20"/>',
+  tier1:'<rect x="4.5" y="14" width="3.5" height="6" rx=".8" fill="currentColor"/><rect x="10.25" y="10" width="3.5" height="10" rx=".8" opacity=".35"/><rect x="16" y="5" width="3.5" height="15" rx=".8" opacity=".35"/>',
+  tier2:'<rect x="4.5" y="14" width="3.5" height="6" rx=".8" fill="currentColor"/><rect x="10.25" y="10" width="3.5" height="10" rx=".8" fill="currentColor"/><rect x="16" y="5" width="3.5" height="15" rx=".8" opacity=".35"/>',
+  tier3:'<rect x="4.5" y="14" width="3.5" height="6" rx=".8" fill="currentColor"/><rect x="10.25" y="10" width="3.5" height="10" rx=".8" fill="currentColor"/><rect x="16" y="5" width="3.5" height="15" rx=".8" fill="currentColor"/>',
+  ram:'<rect x="2.5" y="7" width="19" height="8" rx="1"/><path d="M6 10h2v2H6zM11 10h2v2h-2zM16 10h2v2h-2z"/><path d="M5 15v2.5M8 15v2.5M11 15v2.5M14 15v2.5M17 15v2.5"/>',
+  ssd:'<rect x="4" y="6" width="16" height="12" rx="2"/><path d="M8 10h8M8 14h5"/>',
+  hdd:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2"/><path d="M13.5 10.5l4-4"/>',
+  question:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.4V14"/><circle cx="12" cy="17" r=".7" fill="currentColor"/>',
+  fps:'<path d="M3.5 16a8.5 8.5 0 1 1 17 0"/><path d="M12 16l3.8-5.5"/><circle cx="12" cy="16" r="1.2" fill="currentColor"/>',
+  wave:'<path d="M2.5 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0"/>',
+  crash:'<path d="M12 3.5l9 16H3z"/><path d="M12 9.5v4"/><circle cx="12" cy="16.5" r=".7" fill="currentColor"/>',
+  textures:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 15l4-4 4 4 3-3 5 5"/><circle cx="15.5" cy="8.5" r="1.3"/>',
+  heat:'<path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0z"/><path d="M12 9v7"/>',
+  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
+  bolt:'<path d="M13 2.5L4.5 14h6.5l-1 7.5L18.5 10H12z"/>',
+  balance:'<path d="M12 4v15M6 7.5h12M8 20h8"/><path d="M6 7.5l-3 6h6zM18 7.5l-3 6h6z"/>',
+  sparkle:'<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/><path d="M19 3v3M17.5 4.5h3"/>'
+};
+const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[k]}</svg>`;
+
+// ---------- Questions ----------
 const QUESTIONS = [
-  {id:'pc', label:'Ton PC', opts:[['fixe','PC fixe'],['portable','PC portable']]},
-  {id:'ram', label:'Ta RAM', opts:[['8','8 Go'],['16','16 Go'],['32','32 Go +']]},
-  {id:'gpu', label:'Ta carte graphique', stack:true, opts:[
-    ['1','Entrée de gamme','GTX 1050 à 1660, RX 570 à 6500 XT'],
-    ['2','Milieu de gamme','RTX 2060 à 4060, RX 6600 à 7600'],
-    ['3','Haut de gamme','RTX 3070 et plus, RX 6700 XT et plus']]},
-  {id:'cpu', label:'Ton processeur', stack:true, opts:[
-    ['1','Ancien ou 4 cœurs','i5-7400, i7-4790, Ryzen 3'],
-    ['2','Milieu','Ryzen 5 2600 à 3600, i5-9400 à 11400'],
-    ['3','Récent','Ryzen 5 5600 et plus, i5-12400 et plus']]},
-  {id:'disk', label:'GTA est sur', opts:[['ssd','Un SSD'],['hdd','Un disque dur'],['nsp','Je sais pas']]},
-  {id:'goal', label:'Tu veux', opts:[['fps','Max FPS'],['equilibre','Équilibré'],['beau','Beau rendu']]},
-  {id:'pb', label:'Tes problèmes', hint:'Coche tout ce qui te parle.', multi:true, wide:true, opts:[
-    ['fps','FPS bas'],['saccades','Saccades, freezes'],['crash','Crashs'],['textures','Textures qui disparaissent'],['chauffe','PC qui chauffe'],['lag','Input lag (PvP)']]}
+  {id:'pc', title:'Tu joues sur quoi ?', opts:[['fixe','PC fixe','','tower'],['portable','PC portable','','laptop']]},
+  {id:'gpu', title:'Ta carte graphique', hint:'Tu sais pas ? Ctrl + Maj + Échap → Performances → GPU.', opts:[
+    ['1','Entrée de gamme','GTX 1050 à 1660 · RX 570 à 6500 XT','tier1'],
+    ['2','Milieu de gamme','RTX 2060 à 4060 · RX 6600 à 7600','tier2'],
+    ['3','Haut de gamme','RTX 3070 et plus · RX 6700 XT et plus','tier3']]},
+  {id:'cpu', title:'Ton processeur', hint:'Même endroit : Performances → Processeur.', opts:[
+    ['1','Ancien ou 4 cœurs','i5-7400, i7-4790, Ryzen 3','tier1'],
+    ['2','Milieu','Ryzen 5 2600 à 3600, i5-9400 à 11400','tier2'],
+    ['3','Récent','Ryzen 5 5600 et plus, i5-12400 et plus','tier3']]},
+  {id:'ram', title:'Combien de RAM ?', hint:'Performances → Mémoire, le chiffre en haut à droite.', opts:[['8','8 Go','','ram'],['16','16 Go','','ram'],['32','32 Go ou plus','','ram']]},
+  {id:'disk', title:'GTA est installé sur…', opts:[['ssd','Un SSD','Rapide et silencieux','ssd'],['hdd','Un disque dur','Plus lent, il grésille','hdd'],['nsp','Je sais pas','On te dira comment vérifier','question']]},
+  {id:'pb', title:'Qu\'est-ce qui te gêne ?', hint:'Coche tout ce qui te parle, puis continue.', multi:true, opts:[
+    ['fps','FPS bas','','fps'],['saccades','Saccades, freezes','','wave'],['crash','Crashs','','crash'],
+    ['textures','Textures qui disparaissent','','textures'],['chauffe','PC qui chauffe','','heat'],['lag','Input lag en PvP','','target']]},
+  {id:'goal', title:'Tu veux quoi ?', opts:[['fps','Max FPS','Tout pour la fluidité','bolt'],['equilibre','Équilibré','Fluide et propre','balance'],['beau','Beau rendu','Je veux que ce soit joli','sparkle']]}
 ];
 
 const has = (a,p) => a.pb.includes(p);
@@ -323,89 +454,140 @@ function bottleneck(a){
   return ['aucun','Rien de flagrant','Ta config est équilibrée, les gains viendront des réglages.'];
 }
 
-// --- État ---
-let A = null, PLAN = [], DIAG = '';
-const done = new Set();
-const sent = new Set();
+// ---------- État ----------
+const ans = {pb:[]};
+let qi = 0, A = null, PLAN = [], DIAG = '', BASE = 0;
+const done = new Set(), sent = new Set();
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// --- Étape 1 : questions ---
-document.getElementById('form').innerHTML = QUESTIONS.map(q => `
-  <fieldset class="q${q.wide?' wide':''}">
-    <legend>${q.label}</legend>
-    ${q.hint?`<p class="hint">${q.hint}</p>`:''}
-    <div class="opts${q.stack?' stack':''}">
-      ${q.opts.map(([v,t,s])=>`<div class="opt"><input type="${q.multi?'checkbox':'radio'}" name="${q.id}" id="${q.id}-${v}" value="${v}"><label for="${q.id}-${v}"><span class="t">${t}</span>${s?`<span class="s">${s}</span>`:''}</label></div>`).join('')}
-    </div>
-  </fieldset>`).join('');
-
-function read(){
-  const f = document.getElementById('form'), a = {};
-  QUESTIONS.forEach(q=>{
-    if(q.multi) a[q.id] = [...f.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i=>i.value);
-    else a[q.id] = (f.querySelector(`input[name="${q.id}"]:checked`)||{}).value;
-  });
-  return a;
+// ---------- Étape 1 ----------
+function renderQ(){
+  const q = QUESTIONS[qi];
+  document.getElementById('qn').textContent = qi+1;
+  document.getElementById('qt').textContent = QUESTIONS.length;
+  document.getElementById('qbar').style.width = (qi/QUESTIONS.length*100)+'%';
+  const sel = v => q.multi ? ans.pb.includes(v) : ans[q.id]===v;
+  const box = document.getElementById('qbox');
+  box.innerHTML = `
+    <div class="qhead"><h2>${q.title}</h2>${q.hint?`<p>${q.hint}</p>`:''}</div>
+    <div class="tiles" role="group" aria-label="${q.title}">
+      ${q.opts.map(([v,t,s,ic])=>`<button type="button" class="tile" data-v="${v}" aria-pressed="${sel(v)}">
+        ${svg(ic)}<span class="tick" aria-hidden="true"></span><span class="t">${t}</span>${s?`<span class="s">${s}</span>`:''}</button>`).join('')}
+    </div>`;
+  box.classList.remove('screen'); void box.offsetWidth; box.classList.add('screen');
+  document.getElementById('qback').style.visibility = qi===0 ? 'hidden' : 'visible';
+  const next = document.getElementById('qnext');
+  next.hidden = !(q.multi || ans[q.id]);
+  next.textContent = q.multi && !ans.pb.length ? 'Aucun souci précis →' : 'Continuer →';
 }
+document.getElementById('qbox').addEventListener('click', e=>{
+  const t = e.target.closest('.tile'); if(!t) return;
+  const q = QUESTIONS[qi], v = t.dataset.v;
+  if(q.multi){
+    const i = ans.pb.indexOf(v); i<0 ? ans.pb.push(v) : ans.pb.splice(i,1);
+    t.setAttribute('aria-pressed', i<0);
+    document.getElementById('qnext').textContent = ans.pb.length ? 'Continuer →' : 'Aucun souci précis →';
+  } else {
+    ans[q.id] = v;
+    document.querySelectorAll('#qbox .tile').forEach(x=>x.setAttribute('aria-pressed', x===t));
+    setTimeout(nextQ, reduce ? 0 : 230);
+  }
+});
+function nextQ(){ if(qi < QUESTIONS.length-1){ qi++; renderQ(); } else startAnalysis(); }
+document.getElementById('qnext').addEventListener('click', nextQ);
+document.getElementById('qback').addEventListener('click', ()=>{ if(qi>0){ qi--; renderQ(); } });
 
-function newCode(){
-  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const r=new Uint32Array(5); crypto.getRandomValues(r);
-  return 'ADM-' + [...r].map(n=>c[n%c.length]).join('');
-}
-
-async function send(status, message){
-  const body = {code:DIAG, status, answers:A, bottleneck:bottleneck(A)[0], done:PLAN.filter(x=>done.has(x.id)).map(x=>x.id)};
-  if(message) body.message = message;
-  try{
-    const r = await fetch('/.netlify/functions/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
-    return r.ok;
-  }catch(e){ return false; }
-}
-
-function goStep(n){
-  [1,2,3].forEach(i=>document.getElementById('step'+i).hidden = i!==n);
+// ---------- Navigation ----------
+function show(id){
+  ['step1','analyse','step2','step3'].forEach(s=>document.getElementById(s).hidden = s!==id);
+  const n = {step1:1, analyse:1, step2:2, step3:3}[id];
   document.querySelectorAll('#stepper li').forEach(li=>{
     const s=+li.dataset.step; li.className = s===n ? 'on' : (s<n ? 'past' : '');
-    if(s===n) li.setAttribute('aria-current','step'); else li.removeAttribute('aria-current');
+    s===n ? li.setAttribute('aria-current','step') : li.removeAttribute('aria-current');
   });
-  window.scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo({top:0, behavior: reduce ? 'auto' : 'smooth'});
 }
 
-// --- Étape 2 : le plan ---
+// ---------- Analyse ----------
+const LBL = (qid,v)=>{ const o=QUESTIONS.find(q=>q.id===qid).opts.find(o=>o[0]===v); return o?o[1]:'?'; };
+function startAnalysis(){
+  A = JSON.parse(JSON.stringify(ans));
+  DIAG = newCode(); done.clear(); sent.clear(); resetStep3();
+  PLAN = ACTIONS.filter(x=>x.when(A)).map(x=>({...x, s:x.score(A)})).sort((x,y)=>y.s-x.s).slice(0, MAX_ACTIONS);
+  computePoints();
+  send('nouveau');
+  const weak = bottleneck(A)[0];
+  const lines = [
+    ['cpu', 'Processeur', LBL('cpu',A.cpu)],
+    ['gpu', 'Carte graphique', LBL('gpu',A.gpu)],
+    ['ram', 'Mémoire', LBL('ram',A.ram)],
+    ['disk', 'Stockage', LBL('disk',A.disk)],
+    ['temp', 'Refroidissement', A.pc==='portable' ? 'Portable' : 'PC fixe'],
+    ['plan', 'Plan', `${PLAN.length} actions trouvées`]
+  ];
+  document.getElementById('scan').innerHTML = lines.map(([k,n,v])=>{
+    const w = k===weak;
+    return `<li class="${w?'weak':''}"><span class="ic">${w?'◆':'✓'}</span><span>${n} · ${v}</span><span class="st">${w?'point faible':(k==='plan'?'prêt':'ok')}</span></li>`;
+  }).join('');
+  const bar = document.getElementById('scanbar'); bar.style.width='0';
+  show('analyse');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>bar.style.width='100%'));
+  const items = [...document.querySelectorAll('#scan li')];
+  const step = reduce ? 0 : 360;
+  items.forEach((li,i)=>setTimeout(()=>li.classList.add('show'), 150 + i*step));
+  setTimeout(()=>{ renderPlan(); show('step2'); updateScore(); }, reduce ? 300 : 150 + items.length*step + 450);
+}
+
+// ---------- Étape 2 ----------
+function computePoints(){
+  const w = x => x.gain==='Gros' ? 12 : 7;
+  const pot = PLAN.reduce((t,x)=>t+w(x),0);
+  BASE = Math.max(25, 100 - pot);
+  const k = (100-BASE)/pot; let acc = 0;
+  PLAN.forEach((x,i)=>{ x.pts = i===PLAN.length-1 ? (100-BASE-acc) : Math.round(w(x)*k); acc += x.pts; });
+}
 function renderPlan(){
   const [, bt, btText] = bottleneck(A);
-  document.getElementById('verdict').innerHTML = `<span class="tag">Ce qui te freine</span><div><b>${bt}</b><span>${btText}</span></div>`;
+  document.getElementById('weak').innerHTML = `Point faible <b>${bt}</b>`;
   const total = PLAN.reduce((t,x)=>t+x.min,0);
-  document.getElementById('summary').innerHTML = `<b>${PLAN.length} actions</b> · environ <b>${total} min</b> · fais-les dans l'ordre, la première rapporte le plus`;
+  document.getElementById('summary').textContent = `${btText} Fais les ${PLAN.length} actions dans l'ordre, environ ${total} minutes en tout : la première rapporte le plus.`;
+  document.getElementById('s-total').textContent = PLAN.length;
   document.getElementById('plan').innerHTML = PLAN.map(x=>`
     <li class="act${done.has(x.id)?' done':''}" data-id="${x.id}">
       <div class="act-main">
         <div class="act-top"><span class="act-title">${x.title}</span>
-          <span class="chips"><span class="chip${x.gain==='Gros'?' gros':''}">Gain ${x.gain.toLowerCase()}</span><span class="chip">${x.min} min</span></span></div>
+          <span class="chips"><span class="chip pts">+${x.pts} pts</span><span class="chip">${x.min} min</span></span></div>
         <ol>${x.steps(A).map(s=>`<li>${s}</li>`).join('')}</ol>
         ${x.table ? `<details class="more"><summary>Voir tous mes réglages GTA</summary><div class="table-wrap"><table>${gtaSettings(A).map(([n,v])=>`<tr><td>${n}</td><td class="v">${v}</td></tr>`).join('')}</table></div></details>` : ''}
-        <div class="act-foot"><label class="check"><input type="checkbox" data-done="${x.id}"${done.has(x.id)?' checked':''}> C'est fait</label></div>
+        <label class="check"><input type="checkbox" data-done="${x.id}"${done.has(x.id)?' checked':''}> C'est fait</label>
       </div>
     </li>`).join('');
 }
-
-document.getElementById('form').addEventListener('submit', e=>{
-  e.preventDefault();
-  const a = read();
-  const missing = QUESTIONS.filter(q=>!q.multi && !a[q.id]).map(q=>q.label.toLowerCase());
-  const err = document.getElementById('form-error');
-  if(missing.length){ err.textContent = 'Il manque : ' + missing.join(', ') + '.'; err.hidden = false; return; }
-  err.hidden = true;
-  A = a; DIAG = newCode(); done.clear(); sent.clear(); resetStep3();
-  PLAN = ACTIONS.filter(x=>x.when(A)).map(x=>({...x, s:x.score(A)})).sort((x,y)=>y.s-x.s).slice(0, MAX_ACTIONS);
-  renderPlan();
-  goStep(2);
-  send('nouveau');
-});
-
+function score(){ return BASE + PLAN.filter(x=>done.has(x.id)).reduce((t,x)=>t+x.pts,0); }
+function updateScore(){
+  const s = score(), n = PLAN.filter(x=>done.has(x.id)).length;
+  const C = 326.7;
+  document.getElementById('ring').style.strokeDashoffset = C * (1 - s/100);
+  animateNum(document.getElementById('ring-num'), s);
+  document.getElementById('s-score').textContent = s;
+  document.getElementById('s-done').textContent = n;
+  document.getElementById('s-bar').style.width = (n/PLAN.length*100)+'%';
+  document.getElementById('ring-title').textContent =
+    s>=100 ? 'PC optimisé à fond' : s>=80 ? 'Presque au max' : s>=55 ? 'Ça commence à envoyer' : 'Ton PC peut faire beaucoup mieux';
+}
+function animateNum(el, to){
+  const from = +el.textContent || 0;
+  if(reduce || from===to){ el.textContent = to; return; }
+  const t0 = performance.now(), d = 600;
+  const tick = t => { const p = Math.min(1,(t-t0)/d); el.textContent = Math.round(from + (to-from)*(1-Math.pow(1-p,3))); if(p<1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
 document.getElementById('plan').addEventListener('change', e=>{
   const c = e.target.closest('[data-done]'); if(!c) return;
   c.checked ? done.add(c.dataset.done) : done.delete(c.dataset.done);
   c.closest('.act').classList.toggle('done', c.checked);
+  updateScore();
+  if(score()>=100) burst(80);
 });
 document.getElementById('plan').addEventListener('click', e=>{
   const c = e.target.closest('[data-copy]'); if(!c) return;
@@ -415,18 +597,31 @@ function copyText(txt, el, cb){
   const fallback = ()=>{ const r=document.createRange(); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); cb('sélectionné'); };
   try{ navigator.clipboard.writeText(txt).then(()=>cb('copié'), fallback); }catch(e){ fallback(); }
 }
+document.getElementById('back1').addEventListener('click', ()=>{ qi = 0; renderQ(); show('step1'); });
+document.getElementById('go3').addEventListener('click', ()=>show('step3'));
+document.getElementById('back2').addEventListener('click', ()=>show('step2'));
 
-document.getElementById('back1').addEventListener('click', ()=>goStep(1));
-document.getElementById('go3').addEventListener('click', ()=>goStep(3));
-document.getElementById('back2').addEventListener('click', ()=>goStep(2));
+// ---------- Envoi ----------
+function newCode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const r=new Uint32Array(5); crypto.getRandomValues(r);
+  return 'ADM-' + [...r].map(n=>c[n%c.length]).join('');
+}
+async function send(status, message){
+  const body = {code:DIAG, status, answers:A, bottleneck:bottleneck(A)[0], done:PLAN.filter(x=>done.has(x.id)).map(x=>x.id)};
+  if(message) body.message = message;
+  try{
+    const r = await fetch('/.netlify/functions/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    return r.ok;
+  }catch(e){ return false; }
+}
 
-// --- Étape 3 : résultat ---
+// ---------- Étape 3 ----------
 function resetStep3(){
   ['zone-ok','zone-ko','zone-code','send-warn','ko-error'].forEach(id=>document.getElementById(id).hidden=true);
   document.getElementById('fb-ok').setAttribute('aria-pressed','false');
   document.getElementById('fb-ko').setAttribute('aria-pressed','false');
   document.getElementById('ko-text').value=''; document.getElementById('ko-count').textContent='0 / 500';
-  document.getElementById('ko-send').disabled=false; document.getElementById('ko-send').textContent='Envoyer à l\'équipe';
+  const b=document.getElementById('ko-send'); b.disabled=false; b.textContent='Envoyer à l\'équipe';
 }
 function choose(state){
   document.getElementById('fb-ok').setAttribute('aria-pressed', state==='ok');
@@ -435,7 +630,7 @@ function choose(state){
   const koSent = sent.has('non-resolu');
   document.getElementById('zone-ko').hidden = state!=='ko' || koSent;
   document.getElementById('zone-code').hidden = state!=='ko' || !koSent;
-  if(state==='ok' && !sent.has('resolu')){ sent.add('resolu'); send('resolu'); }
+  if(state==='ok'){ burst(160); if(!sent.has('resolu')){ sent.add('resolu'); send('resolu'); } }
 }
 document.getElementById('fb-ok').addEventListener('click', ()=>choose('ok'));
 document.getElementById('fb-ko').addEventListener('click', ()=>{ choose('ko'); if(!sent.has('non-resolu')) document.getElementById('ko-text').focus(); });
@@ -449,6 +644,8 @@ document.getElementById('ko-send').addEventListener('click', async ()=>{
   const ok = await send('non-resolu', txt);
   sent.add('non-resolu');
   document.getElementById('diag-code').textContent = DIAG;
+  const d = new Date().toLocaleDateString('fr-FR');
+  document.getElementById('t-meta').innerHTML = `<span>Point faible <b>${bottleneck(A)[1]}</b></span><span>Score <b>${score()}/100</b></span><span>${d}</span>`;
   document.getElementById('send-warn').hidden = ok;
   document.getElementById('zone-ko').hidden = true;
   document.getElementById('zone-code').hidden = false;
@@ -458,7 +655,51 @@ document.getElementById('copy-code').addEventListener('click', e=>{
   copyText(DIAG, document.getElementById('diag-code'), t=>{ b.textContent = t==='copié' ? 'Copié' : 'Code sélectionné'; setTimeout(()=>b.textContent='Copier le code',1500); });
 });
 
-goStep(1);
+// ---------- Pluie de fond ----------
+(function rain(){
+  const cv = document.getElementById('rain'), ctx = cv.getContext('2d');
+  let W, H, drops = [];
+  function size(){
+    const dpr = Math.min(2, devicePixelRatio||1);
+    W = cv.width = innerWidth*dpr; H = cv.height = innerHeight*dpr; ctx.setTransform(1,0,0,1,0,0); ctx.scale(1,1);
+    const n = Math.round(innerWidth*innerHeight/14000);
+    drops = Array.from({length:n}, ()=>({x:Math.random()*W, y:Math.random()*H, l:(8+Math.random()*22)*dpr, v:(5+Math.random()*9)*dpr, a:.08+Math.random()*.22}));
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.lineWidth = Math.min(2, devicePixelRatio||1);
+    for(const d of drops){
+      ctx.strokeStyle = `rgba(190,160,255,${d.a})`;
+      ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - d.l*.18, d.y + d.l); ctx.stroke();
+      if(!reduce){ d.y += d.v; d.x -= d.v*.18; if(d.y > H){ d.y = -d.l; d.x = Math.random()*W*1.1; } }
+    }
+    if(!reduce && !document.hidden) requestAnimationFrame(draw);
+  }
+  addEventListener('resize', ()=>{ size(); if(reduce) draw(); });
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && !reduce) requestAnimationFrame(draw); });
+  size(); draw();
+})();
+
+// ---------- Confettis ----------
+function burst(n){
+  if(reduce) return;
+  const cv = document.getElementById('confetti'), ctx = cv.getContext('2d');
+  const dpr = Math.min(2, devicePixelRatio||1);
+  cv.width = innerWidth*dpr; cv.height = innerHeight*dpr;
+  const cols = ['#a277ff','#6d3df0','#ffffff','#d4b8ff','#8a5bff'];
+  const ps = Array.from({length:n}, ()=>({x:cv.width/2, y:cv.height*.45, vx:(Math.random()-.5)*26*dpr, vy:(-10-Math.random()*16)*dpr,
+    w:(5+Math.random()*7)*dpr, h:(8+Math.random()*10)*dpr, r:Math.random()*6, vr:(Math.random()-.5)*.4, c:cols[Math.random()*cols.length|0]}));
+  const t0 = performance.now();
+  (function f(t){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    for(const p of ps){ p.vy += .55*dpr; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore(); }
+    if(t - t0 < 3200) requestAnimationFrame(f); else ctx.clearRect(0,0,cv.width,cv.height);
+  })(t0);
+}
+
+renderQ();
+show('step1');
 </script>
 </body>
 </html>
