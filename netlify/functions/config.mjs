@@ -31,9 +31,9 @@ const LABELS = {
 };
 
 const STATUS = {
-  nouveau: { title: 'Nouvelle config', color: 0x9b6bff },
-  resolu: { title: 'Résolu', color: 0x5cc98a },
-  'non-resolu': { title: 'Non résolu · ticket à venir', color: 0xfb7185 },
+  nouveau: { title: 'Nouvelle config', color: 0x9b6bff, icon: '🟣' },
+  resolu: { title: 'Résolu', color: 0x5cc98a, icon: '🟢' },
+  'non-resolu': { title: 'Non résolu · ticket à venir', color: 0xfb7185, icon: '🔴' },
 };
 
 const bad = (msg) => new Response(msg, { status: 400 });
@@ -94,6 +94,8 @@ export default async (req) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       username: "ADMSTUDIOS",
+      // Le code en texte normal : la recherche Discord ne lit pas le contenu des encadrés.
+      content: `${STATUS[status].icon} Code **${code}** · ${STATUS[status].title}`,
       allowed_mentions: { parse: [] },
       embeds: [{
         title: `${code} · ${STATUS[status].title}`,
